@@ -340,6 +340,8 @@ async function make_quiz() {
 
 function next_question() {
 
+  c_opt = 12;
+
   if (c_index >= quizData.length) {
     summary();
     return;
@@ -358,13 +360,26 @@ function next_question() {
     }
   }
   let options = [];
-  for (let k = 0; k < n_options; k++) {
-    options[k] = optionData[c_index][random_indices[k]];
-    if (options[k]["id"] == quizData[c_index][0]["taxon"]["id"]) {
-      // if option is the same as correct answer, swap with last option
-      options[k] = optionData[c_index][random_indices[optionData[c_index].length - 1]];
+  let k = 0;
+
+  console.log("Option data:");
+  console.log(optionData[c_index]);
+
+
+  while (options.length < 4) {
+    let r_option = optionData[c_index][random_indices[k]]
+    console.log("Random option:");
+    console.log(r_option);
+    options.push(r_option);
+    if (r_option["id"] == quizData[c_index][0]["taxon"]["id"]) {
+       c_opt = options.length - 1;
     }
+    k += 1;
   }
+
+  console.log("Options:");
+  console.log(options);
+
 
   // set option buttons
   optionButtons.forEach((button, j) => {
@@ -380,17 +395,21 @@ function next_question() {
 
 
   // set random correct option
-  c_opt = Math.floor(Math.random() * 4);
+  if (c_opt === 12) {
+    c_opt = Math.floor(Math.random() * 4);
+ 
 
-  let new_scientific_name_span = document.createElement('span');
-  let new_common_name_span = document.createElement('span');
+    let new_scientific_name_span = document.createElement('span');
+    let new_common_name_span = document.createElement('span');
 
-  new_scientific_name_span.innerHTML = quizData[c_index][0]["taxon"]["name"];
-  new_common_name_span.innerHTML = quizData[c_index][0]["taxon"]["preferred_common_name"] || "";
-  optionButtons[c_opt].innerHTML = "";
-  optionButtons[c_opt].appendChild(new_scientific_name_span);
-  optionButtons[c_opt].appendChild(new_common_name_span);
+    new_scientific_name_span.innerHTML = quizData[c_index][0]["taxon"]["name"];
+    new_common_name_span.innerHTML = quizData[c_index][0]["taxon"]["preferred_common_name"] || "";
+    optionButtons[c_opt].innerHTML = "";
+    optionButtons[c_opt].appendChild(new_scientific_name_span);
+    optionButtons[c_opt].appendChild(new_common_name_span);
 
+  
+  }
   c_index += 1;
 
   if (c_index >= quizData.length) {
