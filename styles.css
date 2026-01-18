@@ -1,0 +1,398 @@
+
+.dark-body{
+    display: block;
+    width: 100vw;
+    background: black;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+.main-header{
+    display: flex;
+    position: relative;
+    justify-content: center;
+    width: 100%;
+    height: 7vh;
+    font-size: 3vh;
+    background-color: black;
+    color: white;
+    top: 0vh;
+    align-items: center;
+
+    
+}
+
+.content-container{
+    display: flex;
+    width: 100vw;
+    height: 95vh;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.filter-menu{
+    margin: 0;
+    padding: 0;
+    width: 25vw;
+    height: 100%;
+    display: list-item;
+    border: 0.2vh solid white;
+    box-sizing: border-box;
+    line-height: 0;
+}
+
+.filter-header{
+    display: flex;
+    color: white;
+    height: 2.5vh;
+    font-size: 2vh;
+    box-sizing: border-box;
+    background-color: black;
+    align-items: center;
+    margin-left: 0.25vw;
+
+}
+
+
+.list-box{
+    width: 100%;
+    height: 20vh;
+    position: relative;
+    background-color: black;
+    border: 0.1vw solid white;
+    box-sizing: border-box;
+    z-index: 5;
+    justify-content: center;  
+    align-items: center;
+    overflow: scroll;
+    overflow-x: hidden;
+    
+
+
+}
+.search-box-container{
+    display: flex;
+    width: 100%;
+    height: 3vh;
+    font-size: 2vh;
+    background-color: black;
+    border-bottom: 0.2vh solid white;
+    box-sizing: border-box;
+    resize: none;
+    box-shadow: none;
+    color: white;
+    outline: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    
+}
+.search-box{
+    width: 100%;
+    font-size: 24px;
+    resize: none;
+    color: white;
+    background-color: black;
+    border: solid;
+    margin-right: 1vw;
+
+    box-sizing: border-box;
+    border: 0.1vw solid white;
+    
+}
+
+.result-list{
+    width: 100%;
+    height: 20vh;
+    position: relative;
+    background-color: black;
+    border: 0.1vw solid white;
+    box-sizing: border-box;
+    z-index: 5;
+    justify-content: center;  
+    align-items: center;
+    overflow: scroll;
+    overflow-x: hidden;
+    margin-bottom: 2vw;
+    
+
+
+}
+
+
+
+.clear-search-button{
+    cursor: pointer;
+    width: 1.5vh;
+    height: 1.5vh;
+    margin: 1vh;
+}
+
+.clear-search-button:hover{
+    filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(330deg) saturate(600%) contrast(0.8);
+}
+
+.remove-taxon-button{
+    cursor: pointer;
+    content: url("res/icon_X.svg");
+    width: 1.5vh;
+    height: 1.5vh;
+    margin: 1vh;
+}
+
+.remove-taxon-button:hover{
+    filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(330deg) saturate(600%) contrast(0.8);
+}
+
+
+
+#result-list{
+    width: 100%;
+    overflow-y: auto;
+    height: 86.8vh;
+    margin: 0;
+    padding: 0;
+}
+
+.date-container{
+    display: flex;
+    height: 12vh ;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 2vw;
+    padding-right: 2vw;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+    border-style: solid;
+    color: white;
+}
+
+.make-quiz-button{
+    display: flex;
+    margin: 2.5vw;
+    font-size: 2vh;
+    width: 20vw;
+    height: 6vh;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-color: black;
+    border-style: solid;
+    color: white;
+    border-color: white;
+    cursor: pointer;
+}
+
+.make-quiz-button:hover{
+    filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(90deg) saturate(600%) contrast(0.8);
+}
+
+
+.main-view{
+    width: 50vw;
+    display: flexbox;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+
+}
+
+
+.center-box {
+  display: flex; 
+  align-items: center;
+  justify-content: center;         /* shrink-wrap to content */
+}
+
+
+.center-box{
+    display: flex;
+    justify-content: center;
+    height: 70%;
+    width: 100%;
+    z-index: 3;
+}
+
+
+.v-box{
+    display: flexbox;
+    margin: 1vh;
+    height: 10vh;
+    z-index: 3;
+
+}
+
+.image-view{
+    display: flex;
+    justify-content: center;
+    height: 60vh;
+    width: 100%;
+    z-index: 3;
+
+}
+
+
+.image-view-item{
+    height: 60vh;
+    width: 50vw;
+    object-fit: scale-down;
+    background-color: black;
+    position: absolute;
+    top: 100px;
+    transition: opacity 0.5s;
+    cursor: pointer;
+}
+
+
+
+
+
+
+.next-button{
+    font-size: 2vh;
+    text-align: center;
+    height: 5vh;
+    width: 20%;
+    background-color: black;
+    border-style: solid;
+    color: white;
+    border-color: white;
+}
+
+.option-button{
+    border: 5%;
+    border-color: white;
+    border-style: solid;
+    padding: 1vh;
+    font-size: 2vh;
+    text-align: center;
+    width: 15vw;
+    white-space: nowrap;
+    display: block;
+    background-color: black;
+    color: white;
+    cursor: pointer;
+
+    > span {
+        display: block;
+        line-height: 1.5;
+        font-style: normal;
+        font-size: 1.5vh;
+
+    
+        &:first-of-type {
+            font-style: italic;
+            line-height: 2;
+            font-size: 2vh;
+        }
+    }
+}
+
+
+.options{
+    display: grid;
+    grid-template-columns: repeat(2, 15vw);
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.score-label{
+    font-size: 2vh;
+    display: block;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+    width: 100%;
+}
+
+
+
+.indicator{
+    position: relative;
+    left: 50%;
+    right: 50%;
+    background-color: white;
+    width: 2px;
+    height: 45vh;
+    z-index: 6;
+    top: 7%;
+}
+
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+    width: 0.3vw;
+    height: 0.3vw;
+    }
+    
+    ::-webkit-scrollbar-track {
+    border-left: 0.2vh solid white;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+    background: white;  
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+    background: green;
+    }
+
+.taxon-item{
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    height: auto;
+    color: white;
+    background-color: black;
+    border-bottom: 0.2vh solid white;
+    box-sizing: border-box;
+    padding: 0.5vw;
+    box-sizing: border-box;
+}
+
+
+
+.taxon-title{
+    cursor:default;
+    font-size: 2vh;
+    width: 100%;
+    line-height: 2vh;
+}
+
+.taxon-sub-title{
+    cursor:default;
+    font-size: 1.5vh;
+    width: 100%;
+}
+
+.add-button{
+    cursor: pointer;
+    content: url("res/icon_X.svg");
+    transform: rotate(45deg);
+    height: 2vh;
+    width: 2vh;
+    margin: 0.5vh;
+}
+
+.add-button:hover{
+    filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(90deg) saturate(600%) contrast(0.8);
+}
+
+
+
+.stats-view{
+    display: flexbox;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+    width: 25vw;
+    margin-top: 2vh;
+    margin-bottom: 2vh;
+    z-index: 3;
+
+}

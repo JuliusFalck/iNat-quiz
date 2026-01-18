@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body class="dark-body">
+    <div class="main-header">
+        iNat-Quiz
+    </div>
+    <div class="content-container">
+
+
+
+        <div class="filter-menu">
+            <div class="filter-header">
+                Taxa
+            </div>
+            <div class="list-box" , id="taxa-list">
+                <!-- Selected taxa will be dynamically added here -->
+
+            </div>
+            <div class="search-box-container">
+                <input name="Search" class="search-box" rows="1" placeholder="Search"></textarea>
+                <img class="clear-search-button" src="res/icon_X.svg">
+            </div>
+            <div class="result-list">
+                <!-- Suggestions will be dynamically added here -->
+
+            </div>
+
+
+            <div class="filter-header">
+                Location
+            </div>
+
+            <textarea name="Search" class="search-box" rows="1" placeholder="All"></textarea>
+
+            <div class="search-results" id="location-suggestions">
+                <!-- Suggestions will be dynamically added here -->
+            </div>
+
+            <div class="filter-header">
+                Date
+            </div>
+            <div class="date-container">
+                From: <input type="date" id="start" name="trip-start" value="2024-01-01" min="2000-01-01"
+                    max="2024-12-31">
+
+                To: <input type="date" id="start" name="trip-start" value="2024-12-31" min="2000-01-01"
+                    max="2024-12-31">
+            </div>
+
+
+            <div class="make-quiz-button">
+                Make Quiz
+            </div>
+        </div>
+
+
+        <div class="main-view">
+            <div class="image-view">
+                <!-- Images will be dynamically added here -->
+
+            </div>
+            <div class="v-box">
+                <div class="options">
+                    <button id="opt-0" class="option-button">
+                        Bird
+                    </button>
+                    <button id="opt-1" class="option-button">
+                        Bird
+                    </button>
+                    <button id="opt-2" class="option-button">
+                        Bird
+                    </button>
+                    <button id="opt-3" class="option-button">
+                        Bird
+                    </button>
+                </div>
+
+                <div class="center-box">
+                    <button class="next-button">
+                        <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span> Next
+                    </button>
+                </div>
+
+                <div class="score-label">
+                    Score:
+                </div>
+            </div>
+        </div>
+        <div class="stats-view">
+            Statistics will be shown here.
+        </div>
+    </div>
+    </div>
+    <script type="module" src="index.js"></script>
+</body>
+
+</html>
