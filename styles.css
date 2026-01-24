@@ -12,7 +12,7 @@
     position: relative;
     justify-content: center;
     width: 100%;
-    height: 7vh;
+    height: 5vh;
     font-size: 3vh;
     background-color: black;
     color: white;
@@ -133,7 +133,7 @@
     filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(330deg) saturate(600%) contrast(0.8);
 }
 
-.remove-taxon-button{
+.remove-button{
     cursor: pointer;
     content: url("res/icon_X.svg");
     width: 1.5vh;
@@ -141,7 +141,7 @@
     margin: 1vh;
 }
 
-.remove-taxon-button:hover{
+.remove-button:hover{
     filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(330deg) saturate(600%) contrast(0.8);
 }
 
@@ -157,7 +157,7 @@
 
 .date-container{
     display: flex;
-    height: 12vh ;
+    height: 3vh ;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
@@ -191,11 +191,11 @@
 
 
 .main-view{
-    width: 50vw;
-    display: flexbox;
     justify-content: center;
+    width: 50vw;
+    display: block;
     align-items: center;
-    height: 90vh;
+    height: 95vh;
 
 }
 
@@ -218,9 +218,10 @@
 
 .v-box{
     display: flexbox;
-    margin: 1vh;
-    height: 10vh;
+    margin: 3vh;
+    height: 9vh;
     z-index: 3;
+
 
 }
 
@@ -266,8 +267,10 @@
     border-color: white;
     border-style: solid;
     padding: 1vh;
+    margin: 0.5vh;
     font-size: 2vh;
     text-align: center;
+    height: 8vh;
     width: 15vw;
     white-space: nowrap;
     display: block;
@@ -284,7 +287,7 @@
     
         &:first-of-type {
             font-style: italic;
-            line-height: 2;
+            line-height: 1.5;
             font-size: 2vh;
         }
     }
@@ -294,6 +297,7 @@
 .options{
     display: grid;
     grid-template-columns: repeat(2, 15vw);
+    gap: 0 1vh;
     justify-content: center;
     align-items: center;
     width: 100%;
@@ -301,15 +305,185 @@
 
 .score-label{
     font-size: 2vh;
+    position: fixed;
+    width: 50vw;
+    bottom: 4vh;
     display: block;
     justify-content: center;
     align-items: center;
     color: white;
     text-align: center;
-    width: 100%;
+}
+
+.summary-view{
+    visibility: hidden;
+    justify-self: center;
+    display: block;
+    width: 40vw;
+    height: 80vh;
+    background-color: black;
+    padding: 1vh;
+    border: 0.2vh solid white;
+
+    box-sizing: border-box;
+
+    overflow-y: auto;
+    
 }
 
 
+.summary-item{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    height: 20vh;
+    background-color: black;
+    border: 0.2vh solid white;
+    box-sizing: border-box;
+    padding: 0.5vw;
+    box-sizing: border-box;
+}
+
+
+
+.summary-image{
+    height: 100%;
+    width: 15vh;
+    object-fit: scale-down;
+    margin-right: 1vw;
+}
+
+.summary_text_container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.summary-text-box-right{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 8vh;
+    border: 0.2vh solid green;
+}
+
+.summary-text-box-wrong{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 8vh;
+    border: 0.2vh solid red;
+}
+
+.summary-text-right{
+    padding: 1vh;
+    font-size: 3vh;
+    text-align: left;
+    width: 15vw;
+    white-space: nowrap;
+    display: block;
+    background-color: black;
+    color: white;
+    cursor: pointer;
+
+    > span {
+        display: block;
+        font-style: normal;
+        line-height: 1.25;
+        font-size: 2vh;
+
+    
+        &:first-of-type {
+            font-style: italic;
+            line-height: 1.25;
+            font-size: 2.5vh;
+        }
+    }
+}
+
+
+.summary-text-wrong{
+
+    text-align: left;
+    padding: 1vh;
+    width: 15vw;
+    white-space: nowrap;
+    display: block;
+    background-color: black;
+    color: white;
+    cursor: pointer;
+    text-decoration: line-through solid rgba(255, 0, 0, 0.75) 0.25vh;
+  
+
+    > span {
+        display: block;
+        font-style: normal;
+        line-height: 1.25;
+        font-size: 2vh;
+
+
+    
+        &:first-of-type {
+            font-style: italic;
+            line-height: 1.25;
+            font-size: 2.5vh;
+        }
+    }
+}
+
+
+.question-number{
+    font-size: 3vh;
+    color: white;
+    text-align: center;
+    position: absolute;
+    left: 1vh;
+    top: 1vh;
+}
+
+
+.inat-link{
+    height: 6vh;
+    width: 6vh;
+    font-size: 2vh;
+    color: white;
+    text-align: center;
+    margin: 1vh;
+    cursor: pointer;
+    content: url("https://upload.wikimedia.org/wikipedia/en/7/76/INaturalist_logo.png");
+}
+
+
+
+.wiki-link{
+    height: 3vh;
+    width: 3vh;
+    font-size: 2vh;
+    color: white;
+    text-align: center;
+    margin: 1vh;
+    cursor: pointer;
+    content: url("https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png");
+    
+}
+
+
+.ecosia-link{
+    height: 3vh;
+    width: 3vh;
+    font-size: 2vh;
+    color: white;
+    text-align: center;
+    margin: 1vh;
+    cursor: pointer;
+    content: url("https://play-lh.googleusercontent.com/4M6BlVMdaF8jSYIqdLhPL8hdPLsSuMCQidOK30awH6-oQz9wCPSjzZDtIzxmnv7TWlaFmVYOLPQIxC7ez9QfDQ=s96-rw");
+}
 
 .indicator{
     position: relative;
@@ -367,6 +541,27 @@
 .taxon-sub-title{
     cursor:default;
     font-size: 1.5vh;
+    width: 100%;
+}
+
+
+.location-item{
+    height: 4vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    color: white;
+    background-color: black;
+    border-bottom: 0.2vh solid white;
+    box-sizing: border-box;
+    padding: 0.5vw;
+    box-sizing: border-box;
+}   
+
+.location-title{
+    cursor:default;
+    font-size: 2vh;
     width: 100%;
 }
 

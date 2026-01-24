@@ -10,21 +10,13 @@ let score = 0;
 
 let answered = false;
 
-let all_english_names = [];
-
-let all_species_names = [];
-
-let sound_dict = {};
-
-let audio_element = new Audio();
-
 let runs = 0;
-
-let spectrogram = document.querySelector('.spectro-view');
 
 let start = 0;
 
-let n_questions = 12;
+let quizHistory = [];
+
+let n_questions = 6;
 
 let n_options = 4;
 
@@ -34,6 +26,8 @@ let searchData = {};
 
 let taxonData = {};
 
+let locationData = [];
+
 let quizData = [];
 
 let ObsData = [];
@@ -42,28 +36,46 @@ let optionData = [];
 
 let species_pool = [];
 
+let quizAnswers = [];
+
+let quizOptions = [];
+
 const acceptedRanks = ["kingdom", "phylum", "class", "order", "family", "genus", "species", "subspecies"]
 
 
 
 // Elements
 
-let searchBox = document.querySelector('.search-box');
+let searchBox = document.querySelector('#search-box');
 
 let resultList = document.querySelector('.result-list');
 
 let taxaList = document.querySelector('#taxa-list');
 
-let clearSearchButton = document.querySelector(".clear-search-button");
+let clearSearchButton = document.querySelector("#clear-search-button");
+
+let searchBoxLocation = document.querySelector('#search-box-location');
+
+let locationResultList = document.querySelector('.location-result-list');
+
+let clearSearchButtonLocation = document.querySelector("#clear-search-button-location");
+
+
+let locationList = document.querySelector('#locations-list');
 
 let makeQuizButton = document.querySelector(".make-quiz-button");
 
-let imageView = document.querySelector('.image-view');
+let mainBody = document.querySelector('.main-body');
 
+let controlsContainer = document.querySelector('#controls-container');
+
+let imageView = document.querySelector('.image-view');
 
 let nextButton = document.querySelector('.next-button');
 
 let optionButtons = document.querySelectorAll('.option-button');
+
+let summaryView = document.querySelector('.summary-view');
 
 // Event listeners
 
@@ -77,6 +89,21 @@ clearSearchButton.addEventListener('click', event => {
   searchBox.focus();
   search();
 })
+
+
+
+
+searchBoxLocation.addEventListener('input', event => {
+  search_location();
+})
+
+clearSearchButtonLocation.addEventListener('click', event => {
+  searchBoxLocation.value = "";
+  searchBoxLocation.focus();
+  search_location();
+})
+
+
 
 
 optionButtons.forEach((button, i) => {
@@ -100,8 +127,12 @@ function answer(a) {
     runs += 1;
     if (a == c_opt) {
       score += 1;
-
+      
     }
+
+    quizHistory.push(a == c_opt);
+    quizAnswers.push(a);
+
     document.querySelector('.score-label').innerHTML = "Score: "
       + score.toString() + "/" + runs.toString();
     answered = true;
@@ -113,7 +144,7 @@ function answer(a) {
 
 
 
-// load data
+// taxa stuff
 
 
 async function search() {
@@ -136,7 +167,6 @@ async function search() {
     results.forEach((res, i) => {
 
       // filter accepted ranks
-      if (acceptedRanks.includes(res["rank"])) {
 
 
         searchData[res["name"]] = {
@@ -185,7 +215,6 @@ async function search() {
           addTaxon(res["id"], res["name"]);
 
         });
-      }
     })
   }
 }
@@ -221,7 +250,7 @@ function addTaxon(taxonID, taxonName) {
   }
 
   let new_remove_button = document.createElement('img');
-  new_remove_button.classList.add("remove-taxon-button");
+  new_remove_button.classList.add("remove-button");
   new_taxon_item.appendChild(new_remove_button);
 
   new_remove_button.addEventListener('click', event => {
@@ -241,8 +270,90 @@ function clear_results() {
 }
 
 
+// location stuff
+
+async function search_location() {
+  if (searchBoxLocation.value == "") {
+    clear_location_results();
+  } 
+  else {
+    let location_response = await fetch("https://api.inaturalist.org/v1/places/autocomplete?q=" + searchBoxLocation.value + "&order_by=area");
+
+
+    const inat_json = await location_response.json();
+    let results = inat_json["results"];
+
+
+    clear_location_results();
+
+    results.forEach((res, i) => {
+      let new_result_item = document.createElement('div');
+      new_result_item.classList.add('location-item');
+      new_result_item.id = "location-result-" + i;
+      locationResultList.appendChild(new_result_item);
+
+
+
+      let new_result_title = document.createElement('div');
+      new_result_item.appendChild(new_result_title);
+      new_result_title.classList.add('location-title');
+
+      new_result_title.innerHTML = res["name"];
+
+      let new_add_button = document.createElement('img');
+      new_add_button.classList.add("add-button");
+      new_result_item.appendChild(new_add_button);
+
+      new_add_button.addEventListener('click', event => {
+        addLocation(res["id"], res["name"]);
+      });
+    });
+  }
+}
+
+
+function addLocation(locationID, locationName) {
+  console.log("Adding location ID: " + locationID.toString());
+
+  locationData.push(locationID);
+
+  let new_location_item = document.createElement('div');
+  new_location_item.classList.add('location-item');
+  new_location_item.id = "location-" + locationID;
+
+
+  let new_location_title = document.createElement('div');
+  new_location_item.appendChild(new_location_title);
+  new_location_title.classList.add('location-title');
+
+  new_location_title.innerHTML = locationName;
+
+  let new_remove_button = document.createElement('img');
+  new_remove_button.classList.add("remove-button");
+  new_location_item.appendChild(new_remove_button);
+
+  new_remove_button.addEventListener('click', event => {
+    locationList.removeChild(new_location_item);
+    locationData = locationData.filter(id => id !== locationID);
+    
+  });
+  console.log(locationList);
+  locationList.appendChild(new_location_item);
+}
+
+
+function clear_location_results() {
+  locationResultList.innerHTML = "";
+}
+
+
+// quiz stuff
 
 async function make_quiz() {
+
+  console.log(taxonData);
+
+  console.log(locationData[0]);
 
   c_index = 0;
   score = 0;
@@ -251,6 +362,12 @@ async function make_quiz() {
   quizData = [];
   optionData = [];
   ObsData = [];
+  imageView.style.visibility = "visible";
+  imageView.style.height = "60vh";
+  controlsContainer.style.visibility = "visible";
+  controlsContainer.style.height = "10vh";
+  summaryView.style.visibility = "hidden";
+  summaryView.style.height = "0vh";
   imageView.innerHTML = "";
 
   document.querySelector('.score-label').innerHTML = "Score: "
@@ -263,32 +380,48 @@ async function make_quiz() {
   for (const taxonID in taxonData) {
     console.log(taxonData[taxonID]["iNatID"]);
 
-      let inat_response = await fetch("https://api.inaturalist.org/v1/taxa?taxon_id=" + taxonData[taxonID]["iNatID"] + "&rank=species&order=desc&order_by=observations_count");
-      
-      const inat_json = await inat_response.json();
-      console.log(inat_json);
+    const params = new URLSearchParams({
+      taxon_id: String(taxonData[taxonID].iNatID),
+      place_id: String(locationData),
+      captive: "false",
+      rank: "species",
+      photos: "true",
+      quality_grade: "research",
+      include_ancestors: "false",
+      expected_nearby: "true",
+      order_by: "observations_count",
+      order: "desc",
+      per_page: "60",
+      page: "1"
+    });
 
-      inat_json["results"].forEach((res, i) => {
-        console.log("Adding species ID to pool: " + res["id"].toString());
-        species_pool.push(res["id"]);
-      });
+    const url = `https://api.inaturalist.org/v1/observations/species_counts?${params.toString()}`;
+    const inat_response = await fetch(url);
+    const data = await inat_response.json();
+    console.log(data);
+
+    data["results"].forEach((res, i) => {
+      console.log("Adding species ID to pool: " + res["taxon"]["id"].toString());
+      species_pool.push(res["taxon"]["id"]);
+    });
 
   }
+
+  console.log("Initial species pool size: " + species_pool.length.toString());
 
 
   console.log("Species pool:");
   console.log(species_pool);
 
   species_pool = Array.from(new Set(species_pool)); // remove duplicates
+
+  // shuffle species pool
+  species_pool = species_pool.sort(() => Math.random() - 0.5);
+  console.log("Unique species pool size: " + species_pool.length.toString());
   species_pool = species_pool.slice(0, n_questions); // limit to n_questions species
 
 
   await get_observations();
-
-
-  
-
-
 
 
   // randomize ObsData
@@ -367,7 +500,7 @@ function next_question() {
 
 
   while (options.length < 4) {
-    let r_option = optionData[c_index][random_indices[k]]
+    let r_option = optionData[c_index][random_indices[k]]["taxon"];
     console.log("Random option:");
     console.log(r_option);
     options.push(r_option);
@@ -376,6 +509,8 @@ function next_question() {
     }
     k += 1;
   }
+
+  quizOptions.push(options);
 
   console.log("Options:");
   console.log(options);
@@ -430,10 +565,26 @@ async function load_higher_rank_data(rank, obs) {
 
   console.log("Higher rank ID: " + higher_rank_id.toString());
 
-  let higher_rank_response = await fetch("https://api.inaturalist.org/v1/taxa?taxon_id=" + higher_rank_id.toString() + "&rank=species&order=desc&order_by=observations_count");
+  const params = new URLSearchParams({
+    taxon_id: String(higher_rank_id),
+    place_id: String(locationData),
+    captive: "false",
+    rank: "species",
+    quality_grade: "research",
+    include_ancestors: "false",
+    expected_nearby: "true",
+    order_by: "observations_count",
+    order: "desc",
+    per_page: "80",
+    page: "1"
+  });
 
-  const inat_json = await higher_rank_response.json();
-  const higher_rank_data = inat_json["results"];
+  const url = `https://api.inaturalist.org/v1/observations/species_counts?${params.toString()}`;
+  const inat_response = await fetch(url);
+  const data = await inat_response.json();
+  console.log(data);
+
+  const higher_rank_data = data["results"];
   console.log(higher_rank_data.length.toString() + " entries found at rank " + rank.toString());
 
   if (higher_rank_data.length < n_options) {
@@ -452,7 +603,7 @@ function setImage(index){
   for (let child of imageView.children) {
       child.style.opacity = '0';
     }
-  console.log( Array.from(imageView.children).reverse()[index]);
+  console.log(Array.from(imageView.children).reverse()[index]);
   Array.from(imageView.children).reverse()[index].style.opacity = '1';
     
 }
@@ -461,12 +612,124 @@ function setImage(index){
 
 function summary() {
   console.log("Quiz finished!");  
-  imageView.innerHTML = "";
-  let summary_text = document.createElement('div');
-  summary_text.classList.add('summary-text');
-  summary_text.innerHTML = "Quiz finished! Your final score is "
-    + score.toString() + " out of " + runs.toString() + ".";
-  imageView.appendChild(summary_text);
+  imageView.style.visibility = "hidden";
+  controlsContainer.style.visibility = "hidden";
+  imageView.style.height = "0vh";
+  controlsContainer.style.height = "0vh";
+
+  summaryView.style.visibility = "visible";
+  summaryView.style.height = "80vh";
+
+  for (let i = 0; i < n_questions; i++) { 
+    let summary_item = document.createElement('div');
+    summary_item.classList.add('summary-item');
+
+    summaryView.appendChild(summary_item);
+
+    let question_number = document.createElement('div');
+    question_number.classList.add('question-number');
+    question_number.innerHTML = (i + 1).toString() + ".";
+    summary_item.appendChild(question_number);
+
+    let observation_link = document.createElement('img');
+    observation_link.classList.add('inat-link');
+    summary_item.appendChild(observation_link);
+
+    observation_link.addEventListener('click', event => {
+      window.open("https://www.inaturalist.org/observations/" + quizData[i][0]["id"].toString(), '_blank');
+    });
+
+    let summary_image = document.createElement('img');
+    summary_image.classList.add('summary-image');
+    summary_image.src = quizData[i][0]["photos"][0]["url"].replace("square", "large");
+    summary_item.appendChild(summary_image);
+
+    let summary_text_container = document.createElement('div');
+    summary_text_container.classList.add('summary_text_container');
+    summary_item.appendChild(summary_text_container);
+
+    let summary_text_container_box = document.createElement('div');
+    summary_text_container_box.classList.add('summary-text-box-right');
+    summary_text_container.appendChild(summary_text_container_box);
+
+    let summary_text = document.createElement('div');
+    summary_text.classList.add('summary-text-right');
+    let new_scientific_name_span = document.createElement('span');
+    let new_common_name_span = document.createElement('span');
+    new_scientific_name_span.innerHTML = quizData[i][0]["taxon"]["name"];
+    new_common_name_span.innerHTML = quizData[i][0]["taxon"]["preferred_common_name"];
+    summary_text.appendChild(new_scientific_name_span);
+    summary_text.appendChild(new_common_name_span);
+    summary_text_container_box.appendChild(summary_text);
+
+    // links
+    let taxon_link_inat = document.createElement('img');
+    taxon_link_inat.classList.add('inat-link');
+    summary_text_container_box.appendChild(taxon_link_inat);
+    taxon_link_inat.addEventListener('click', event => {
+      window.open("https://www.inaturalist.org/taxa/" + quizData[i][0]["taxon"]["id"], '_blank');
+    });
+    taxon_link_inat.style.height = "3vh";
+    taxon_link_inat.style.width = "3vh";
+
+    let taxon_link_wiki = document.createElement('img');
+    taxon_link_wiki.classList.add('wiki-link');
+    summary_text_container_box.appendChild(taxon_link_wiki);
+    taxon_link_wiki.addEventListener('click', event => {
+      window.open("https://en.wikipedia.org/wiki/" + quizData[i][0]["taxon"]["name"], '_blank');
+    });
+
+    let taxon_link_ecosia = document.createElement('img');
+    taxon_link_ecosia.classList.add('ecosia-link');
+    summary_text_container_box.appendChild(taxon_link_ecosia);
+    taxon_link_ecosia.addEventListener('click', event => {
+      window.open("https://www.ecosia.org/search?q=" + quizData[i][0]["taxon"]["name"], '_blank');
+    });
+
+
+    if (!quizHistory[i]){
+      let summary_text_container_box_wrong = document.createElement('div');
+      summary_text_container_box_wrong.classList.add('summary-text-box-wrong');
+      summary_text_container.appendChild(summary_text_container_box_wrong);
+      let summary_text_wrong = document.createElement('div');
+      summary_text_wrong.classList.add('summary-text-wrong');
+      let new_scientific_name_span = document.createElement('span');
+      let new_common_name_span = document.createElement('span');
+      new_scientific_name_span.innerHTML = quizOptions[i][quizAnswers[i]]["name"];
+      new_common_name_span.innerHTML = quizOptions[i][quizAnswers[i]]["preferred_common_name"];
+      summary_text_wrong.appendChild(new_scientific_name_span);
+      summary_text_wrong.appendChild(new_common_name_span);
+      summary_text_container_box_wrong.appendChild(summary_text_wrong);
+
+      // links
+      let taxon_link_inat = document.createElement('img');
+      taxon_link_inat.classList.add('inat-link');
+      summary_text_container_box_wrong.appendChild(taxon_link_inat);
+      taxon_link_inat.addEventListener('click', event => {
+        window.open("https://www.inaturalist.org/taxa/" + quizOptions[i][quizAnswers[i]]["id"], '_blank');
+      });
+      taxon_link_inat.style.height = "3vh";
+      taxon_link_inat.style.width = "3vh";
+
+      let taxon_link_wiki = document.createElement('img');
+      taxon_link_wiki.classList.add('wiki-link');
+      summary_text_container_box_wrong.appendChild(taxon_link_wiki);
+      taxon_link_wiki.addEventListener('click', event => {
+        window.open("https://en.wikipedia.org/wiki/" + quizOptions[i][quizAnswers[i]]["name"], '_blank');
+      });
+
+      let taxon_link_ecosia = document.createElement('img');
+      taxon_link_ecosia.classList.add('ecosia-link');
+      summary_text_container_box_wrong.appendChild(taxon_link_ecosia);
+      taxon_link_ecosia.addEventListener('click', event => {
+        window.open("https://www.ecosia.org/search?q=" + quizOptions[i][quizAnswers[i]]["name"], '_blank');
+      });
+    }
+
+
+
+  }
+
 }
 
 
@@ -479,6 +742,8 @@ async function get_observations() {
   const inat_json = await inat_response.json();
 
   let results = inat_json["results"];
+  // shuffle results
+  results = results.sort(() => Math.random() - 0.5);
   for (const obs of results) {
     console.log("Observation taxon ID: " + obs["taxon"]["id"].toString());
     if (species_pool.includes(obs["taxon"]["id"])) {

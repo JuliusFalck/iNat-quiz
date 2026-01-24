@@ -23,8 +23,8 @@
 
             </div>
             <div class="search-box-container">
-                <input name="Search" class="search-box" rows="1" placeholder="Search"></textarea>
-                <img class="clear-search-button" src="res/icon_X.svg">
+                <input name="Search" class="search-box" id="search-box" rows="1" placeholder="Search"></textarea>
+                <img class="clear-search-button" id="clear-search-button" src="res/icon_X.svg">
             </div>
             <div class="result-list">
                 <!-- Suggestions will be dynamically added here -->
@@ -36,23 +36,25 @@
                 Location
             </div>
 
-            <textarea name="Search" class="search-box" rows="1" placeholder="All"></textarea>
+            <div class="list-box" , id="locations-list">
+                <!-- Selected taxa will be dynamically added here -->
 
-            <div class="search-results" id="location-suggestions">
+            </div>
+            <div class="search-box-container">
+                <input name="Search" class="search-box" id="search-box-location" rows="1"
+                    placeholder="Search"></textarea>
+                <img class="clear-search-button" id="clear-search-button-location" src="res/icon_X.svg">
+            </div>
+            <div class="location-result-list">
                 <!-- Suggestions will be dynamically added here -->
+
             </div>
 
             <div class="filter-header">
                 Date
             </div>
             <div class="date-container">
-                From: <input type="date" id="start" name="trip-start" value="2024-01-01" min="2000-01-01"
-                    max="2024-12-31">
-
-                To: <input type="date" id="start" name="trip-start" value="2024-12-31" min="2000-01-01"
-                    max="2024-12-31">
             </div>
-
 
             <div class="make-quiz-button">
                 Make Quiz
@@ -65,7 +67,7 @@
                 <!-- Images will be dynamically added here -->
 
             </div>
-            <div class="v-box">
+            <div class="v-box" id="controls-container">
                 <div class="options">
                     <button id="opt-0" class="option-button">
                         Bird
@@ -87,9 +89,11 @@
                     </button>
                 </div>
 
-                <div class="score-label">
-                    Score:
-                </div>
+            </div>
+            <div class="summary-view">
+            </div>
+            <div class="score-label">
+                Score:
             </div>
         </div>
         <div class="stats-view">
