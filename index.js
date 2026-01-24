@@ -77,6 +77,9 @@ let optionButtons = document.querySelectorAll('.option-button');
 
 let summaryView = document.querySelector('.summary-view');
 
+let obs_metadata_container = document.querySelector('.observation-metadata-container');
+
+
 // Event listeners
 
 
@@ -362,12 +365,11 @@ async function make_quiz() {
   quizData = [];
   optionData = [];
   ObsData = [];
-  imageView.style.visibility = "visible";
-  imageView.style.height = "60vh";
-  controlsContainer.style.visibility = "visible";
-  controlsContainer.style.height = "10vh";
-  summaryView.style.visibility = "hidden";
-  summaryView.style.height = "0vh";
+  imageView.style.display = "flex";
+  controlsContainer.style.display = "block";
+  summaryView.style.display = "none";
+  obs_metadata_container.style.display = "flex";
+
   imageView.innerHTML = "";
 
   document.querySelector('.score-label').innerHTML = "Score: "
@@ -473,7 +475,7 @@ async function make_quiz() {
 
 function next_question() {
 
-  c_opt = 12;
+  c_opt = 100;
 
   if (c_index >= quizData.length) {
     summary();
@@ -530,7 +532,7 @@ function next_question() {
 
 
   // set random correct option
-  if (c_opt === 12) {
+  if (c_opt === 100) {
     c_opt = Math.floor(Math.random() * 4);
  
 
@@ -545,6 +547,12 @@ function next_question() {
 
   
   }
+
+  obs_metadata_container.innerHTML = "Observer: " + quizData[c_index][0]["user"]["name"] +
+    " | Location: " + quizData[c_index][0]["place_guess"] +
+    " | Date: " + new Date(quizData[c_index][0]["observed_on"]).toLocaleDateString();
+
+
   c_index += 1;
 
   if (c_index >= quizData.length) {
@@ -612,13 +620,12 @@ function setImage(index){
 
 function summary() {
   console.log("Quiz finished!");  
-  imageView.style.visibility = "hidden";
-  controlsContainer.style.visibility = "hidden";
-  imageView.style.height = "0vh";
-  controlsContainer.style.height = "0vh";
+  imageView.style.display = "none";
+  controlsContainer.style.display = "none";
+  
+  obs_metadata_container.display = "none";
 
-  summaryView.style.visibility = "visible";
-  summaryView.style.height = "80vh";
+  summaryView.style.display = "block";
 
   for (let i = 0; i < n_questions; i++) { 
     let summary_item = document.createElement('div');

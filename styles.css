@@ -217,9 +217,8 @@
 
 
 .v-box{
-    display: flexbox;
-    margin: 3vh;
-    height: 9vh;
+    display: block;
+    height: max-content;
     z-index: 3;
 
 
@@ -246,15 +245,26 @@
     cursor: pointer;
 }
 
-
+.observation-metadata-container{
+    display: flex;
+    font-size: 1.5vh;
+    justify-content: center;
+    align-items: center;
+    height: 4vh;
+    width: 100%;
+    z-index: 3;
+    margin-top: 1.5vh;
+    color: white;
+}
 
 
 
 
 .next-button{
     font-size: 2vh;
+    margin: 1vh;
     text-align: center;
-    height: 5vh;
+    height: 4vh;
     width: 20%;
     background-color: black;
     border-style: solid;
@@ -307,7 +317,6 @@
     font-size: 2vh;
     position: fixed;
     width: 50vw;
-    bottom: 4vh;
     display: block;
     justify-content: center;
     align-items: center;
@@ -316,9 +325,8 @@
 }
 
 .summary-view{
-    visibility: hidden;
+    display: none;
     justify-self: center;
-    display: block;
     width: 40vw;
     height: 80vh;
     background-color: black;
