@@ -48,7 +48,7 @@ const acceptedRanks = ["kingdom", "phylum", "class", "order", "family", "genus",
 
 let searchBox = document.querySelector('#search-box');
 
-let resultList = document.querySelector('.result-list');
+let resultListTaxa = document.querySelector('#taxa-suggestions');
 
 let taxaList = document.querySelector('#taxa-list');
 
@@ -56,7 +56,7 @@ let clearSearchButton = document.querySelector("#clear-search-button");
 
 let searchBoxLocation = document.querySelector('#search-box-location');
 
-let locationResultList = document.querySelector('.location-result-list');
+let resultListLocation = document.querySelector('#locations-suggestions');
 
 let clearSearchButtonLocation = document.querySelector("#clear-search-button-location");
 
@@ -67,7 +67,7 @@ let makeQuizButton = document.querySelector(".make-quiz-button");
 
 let mainBody = document.querySelector('.main-body');
 
-let controlsContainer = document.querySelector('#controls-container');
+let controlsContainer = document.querySelector('.controls-container');
 
 let imageView = document.querySelector('.image-view');
 
@@ -75,10 +75,18 @@ let nextButton = document.querySelector('.next-button');
 
 let optionButtons = document.querySelectorAll('.option-button');
 
+let scoreLabel = document.querySelector('.score-label');
+
 let summaryView = document.querySelector('.summary-view');
 
 let obs_metadata_container = document.querySelector('.observation-metadata-container');
 
+
+let loadingContainer = document.querySelector('.loading-container');
+
+let loadingIndicator = document.querySelector('.loading-indicator');
+
+let loadingIndicatorText = document.querySelector('.loading-indicator-text');
 
 // Event listeners
 
@@ -136,7 +144,7 @@ function answer(a) {
     quizHistory.push(a == c_opt);
     quizAnswers.push(a);
 
-    document.querySelector('.score-label').innerHTML = "Score: "
+    scoreLabel.innerHTML = "Score: "
       + score.toString() + "/" + runs.toString();
     answered = true;
     document.querySelector('#opt-' + a.toString()).style.backgroundColor = "red";
@@ -179,19 +187,22 @@ async function search() {
         }
 
         let new_result_item = document.createElement('div');
-        new_result_item.classList.add('taxon-item');
+        new_result_item.classList.add('search-item');
 
 
-        resultList.appendChild(new_result_item);
+        resultListTaxa.appendChild(new_result_item);
         new_result_item.id = "result-" + i;
 
         let new_titles = document.createElement('div');
         new_result_item.appendChild(new_titles);
         new_titles.classList.add('taxon-title');
+        
 
         let new_result_title = document.createElement('div');
         new_titles.appendChild(new_result_title);
         new_result_title.classList.add('taxon-title');
+        new_result_title.style.cursor = "pointer";
+        
 
 
         new_result_title.innerHTML = res["name"];
@@ -199,6 +210,7 @@ async function search() {
         let new_result_sub_title = document.createElement('div');
         new_titles.appendChild(new_result_sub_title);
         new_result_sub_title.classList.add('taxon-sub-title');
+        new_result_sub_title.style.cursor = "pointer";
 
         new_result_sub_title.innerHTML = res["preferred_common_name"];
 
@@ -207,13 +219,7 @@ async function search() {
         }
 
 
-        let new_add_button = document.createElement('img');
-
-        new_add_button.classList.add("add-button");
-
-        new_result_item.appendChild(new_add_button);
-
-        new_add_button.addEventListener('click', event => {
+        new_result_item.addEventListener('click', event => {
 
           addTaxon(res["id"], res["name"]);
 
@@ -227,7 +233,7 @@ function addTaxon(taxonID, taxonName) {
   taxonData[taxonID] = searchData[taxonName];
 
   let new_taxon_item = document.createElement('div');
-  new_taxon_item.classList.add('taxon-item');
+  new_taxon_item.classList.add('list-item');
 
 
   new_taxon_item.id = "taxon-" + taxonID;
@@ -261,7 +267,7 @@ function addTaxon(taxonID, taxonName) {
     delete taxonData[taxonID];
   });
 
-  new_taxon_item.classList.add('taxon-item');
+  new_taxon_item.classList.add('list-item');
   new_taxon_item.id = "taxon-" + taxonID;
   taxaList.appendChild(new_taxon_item);
 
@@ -269,7 +275,7 @@ function addTaxon(taxonID, taxonName) {
 
 
 function clear_results() {
-  resultList.innerHTML = "";
+  resultListTaxa.innerHTML = "";
 }
 
 
@@ -291,9 +297,9 @@ async function search_location() {
 
     results.forEach((res, i) => {
       let new_result_item = document.createElement('div');
-      new_result_item.classList.add('location-item');
+      new_result_item.classList.add('search-item');
       new_result_item.id = "location-result-" + i;
-      locationResultList.appendChild(new_result_item);
+      resultListLocation.appendChild(new_result_item);
 
 
 
@@ -303,11 +309,7 @@ async function search_location() {
 
       new_result_title.innerHTML = res["name"];
 
-      let new_add_button = document.createElement('img');
-      new_add_button.classList.add("add-button");
-      new_result_item.appendChild(new_add_button);
-
-      new_add_button.addEventListener('click', event => {
+      new_result_title.addEventListener('click', event => {
         addLocation(res["id"], res["name"]);
       });
     });
@@ -321,7 +323,7 @@ function addLocation(locationID, locationName) {
   locationData.push(locationID);
 
   let new_location_item = document.createElement('div');
-  new_location_item.classList.add('location-item');
+  new_location_item.classList.add('list-item');
   new_location_item.id = "location-" + locationID;
 
 
@@ -346,13 +348,15 @@ function addLocation(locationID, locationName) {
 
 
 function clear_location_results() {
-  locationResultList.innerHTML = "";
+  resultListLocation.innerHTML = "";
 }
 
 
 // quiz stuff
 
 async function make_quiz() {
+
+  loading("show");
 
   console.log(taxonData);
 
@@ -365,11 +369,8 @@ async function make_quiz() {
   quizData = [];
   optionData = [];
   ObsData = [];
-  imageView.style.display = "flex";
-  controlsContainer.style.display = "block";
   summaryView.style.display = "none";
-  obs_metadata_container.style.display = "flex";
-
+  
   imageView.innerHTML = "";
 
   document.querySelector('.score-label').innerHTML = "Score: "
@@ -466,6 +467,14 @@ async function make_quiz() {
   });
 
     next_question();
+
+  loading("hide");
+  imageView.style.display = "flex";
+  controlsContainer.style.display = "block";
+  obs_metadata_container.style.display = "flex";
+
+  scoreLabel = document.querySelector('.score-label');
+  scoreLabel.style.display = "block";
     
 
 
@@ -623,7 +632,7 @@ function summary() {
   imageView.style.display = "none";
   controlsContainer.style.display = "none";
   
-  obs_metadata_container.display = "none";
+  obs_metadata_container.style.display = "none";
 
   summaryView.style.display = "block";
 
@@ -762,4 +771,17 @@ async function get_observations() {
     await get_observations();
   }
   return;
+}
+
+
+function loading(action){
+  if (action == "hide") {
+    loadingContainer.style.display = "none";
+    return;
+  }
+
+  if (action == "show") {
+    loadingContainer.style.display = "block";
+  }
+
 }

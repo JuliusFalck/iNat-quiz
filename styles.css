@@ -36,53 +36,61 @@
     padding: 0;
     width: 25vw;
     height: 100%;
-    display: list-item;
+
     border: 0.2vh solid white;
     box-sizing: border-box;
     line-height: 0;
 }
 
+.taxa-menu{
+    display: flex;
+    flex-direction: column;
+    width: 25vw;
+    height: 30vh;
+    overflow: hidden;
+
+}
+
+.location-menu{
+    display: list-item;
+    width: 25vw;
+    height: 30vh;
+
+}
+
+
+.date-menu{
+    display: list-item;
+    width: 25vw;
+    height: 25vh;
+
+}
+
+
 .filter-header{
+    min-width: 50%;
     display: flex;
     color: white;
-    height: 2.5vh;
+    height: 3vh;
     font-size: 2vh;
+    border: 0.2vh solid white;
     box-sizing: border-box;
     background-color: black;
     align-items: center;
-    margin-left: 0.25vw;
+    padding-left: 0.2vh;
 
 }
 
-
-.list-box{
-    width: 100%;
-    height: 20vh;
-    position: relative;
-    background-color: black;
-    border: 0.1vw solid white;
-    box-sizing: border-box;
-    z-index: 5;
-    justify-content: center;  
-    align-items: center;
-    overflow: scroll;
-    overflow-x: hidden;
-    
-
-
-}
 .search-box-container{
     display: flex;
-    width: 100%;
+    width: 50%;
     height: 3vh;
     font-size: 2vh;
     background-color: black;
-    border-bottom: 0.2vh solid white;
-    box-sizing: border-box;
     resize: none;
-    box-shadow: none;
     color: white;
-    outline: none;
+    border: 0.2vh solid white;
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
     align-items: center;
@@ -94,31 +102,67 @@
     resize: none;
     color: white;
     background-color: black;
-    border: solid;
+    border: none;
     margin-right: 1vw;
-
-    box-sizing: border-box;
-    border: 0.1vw solid white;
     
 }
+
+.search-box:focus{
+    outline: none;
+}
+
+
+.flex-column{
+    display: flex;
+    height: max-content;          
+    min-height: 0;                   
+}
+
+
 
 .result-list{
-    width: 100%;
-    height: 20vh;
-    position: relative;
+    display: block;
+    height: 24vh;
+    min-width: 50%;
     background-color: black;
-    border: 0.1vw solid white;
-    box-sizing: border-box;
-    z-index: 5;
-    justify-content: center;  
-    align-items: center;
     overflow: scroll;
     overflow-x: hidden;
-    margin-bottom: 2vw;
-    
+    border: 0.2vh solid white;
 
 
 }
+
+
+.list-box{
+    display: block;
+    width: 100%;
+    height: 24vh;
+    background-color: black;
+    justify-content: center;  
+    align-items: center;
+    overflow-x: hidden;
+    overflow: scroll;        
+    border: 0.2vh solid white;
+    
+}
+
+.list-box:empty{
+  display: none;
+}
+
+
+.list-item{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    color: white;
+    background-color: black;
+    border-bottom: 0.2vh solid white;
+    box-sizing: border-box;
+    padding: 0.5vh;
+}   
+
+
 
 
 
@@ -146,14 +190,6 @@
 }
 
 
-
-#result-list{
-    width: 100%;
-    overflow-y: auto;
-    height: 86.8vh;
-    margin: 0;
-    padding: 0;
-}
 
 .date-container{
     display: flex;
@@ -216,13 +252,73 @@
 }
 
 
-.v-box{
-    display: block;
+.controls-container{
+    display: none;
     height: max-content;
     z-index: 3;
 
 
 }
+
+.loading-container{
+    display: none;
+}
+
+.loading-indicator{
+    display: block;
+    position: absolute;
+    width: 12vh;
+    height: 12vh;
+    color: white;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    content: url("https://upload.wikimedia.org/wikipedia/en/7/76/INaturalist_logo.png");
+    
+    /* rotation animation */
+    animation: spin 2s linear infinite;
+
+    /* optional: set where it rotates around */
+    /* transform-origin: center center; */
+}
+
+
+@keyframes spin{
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.loading-indicator-text{
+    display: flex;
+    position: absolute;
+    font-size: 3vh;
+    color: white;
+    transform: translate(-50%, -50%);
+    top: 62%;
+    left: 50%;
+    z-index: 4;
+}
+
+
+.loading-indicator-text::after{
+  content: "";
+  display: inline-block;
+  width: 1.5em;              /* reserves space so layout doesn't shift */
+  text-align: left;
+  animation: dots 2s steps(4, end) infinite;
+}
+
+@keyframes dots{
+  0%   { content: ""; }
+  25%  { content: "."; }
+  50%  { content: ".."; }
+  75%  { content: "..."; }
+  100% { content: ""; }
+}
+
+
+/* Quiz View Styles */
+
 
 .image-view{
     display: flex;
@@ -248,12 +344,12 @@
 .observation-metadata-container{
     display: flex;
     font-size: 1.5vh;
-    justify-content: center;
+    justify-self: center;
     align-items: center;
     height: 4vh;
-    width: 100%;
+    width: 80%;
     z-index: 3;
-    margin-top: 1.5vh;
+    margin-top: 2vh;
     color: white;
 }
 
@@ -314,15 +410,17 @@
 }
 
 .score-label{
+    display: none;
     font-size: 2vh;
     position: fixed;
     width: 50vw;
-    display: block;
     justify-content: center;
     align-items: center;
     color: white;
     text-align: center;
 }
+
+/* Summary View Styles */
 
 .summary-view{
     display: none;
@@ -523,7 +621,7 @@
     background: green;
     }
 
-.taxon-item{
+.search-item{
     display: flex;
     align-items: center;
     position: relative;
@@ -535,6 +633,10 @@
     box-sizing: border-box;
     padding: 0.5vw;
     box-sizing: border-box;
+    cursor: pointer;
+}
+.search-item:hover{
+     text-decoration: underline;
 }
 
 
@@ -553,38 +655,13 @@
 }
 
 
-.location-item{
-    height: 4vh;
-    display: flex;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    color: white;
-    background-color: black;
-    border-bottom: 0.2vh solid white;
-    box-sizing: border-box;
-    padding: 0.5vw;
-    box-sizing: border-box;
-}   
 
 .location-title{
-    cursor:default;
     font-size: 2vh;
     width: 100%;
+    line-height: 2vh;
 }
 
-.add-button{
-    cursor: pointer;
-    content: url("res/icon_X.svg");
-    transform: rotate(45deg);
-    height: 2vh;
-    width: 2vh;
-    margin: 0.5vh;
-}
-
-.add-button:hover{
-    filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(90deg) saturate(600%) contrast(0.8);
-}
 
 
 

@@ -15,54 +15,82 @@
 
 
         <div class="filter-menu">
-            <div class="filter-header">
-                Taxa
+            <div class="taxa-menu">
+                <div class="filter-header">
+                    Taxa
+                </div>
+
+                <div class="flex-column">
+                    <div class="search-box-container">
+                        <input name="Search" class="search-box" id="search-box" rows="1"
+                            placeholder="Search"></textarea>
+                        <img class="clear-search-button" id="clear-search-button" src="res/icon_X.svg">
+                    </div>
+                    <div class="filter-header">
+                        Selected Taxa
+                    </div>
+                </div>
+                <div class="flex-column">
+                    <div class="result-list" id="taxa-suggestions">
+                        <!-- Suggestions will be dynamically added here -->
+
+                    </div>
+
+                    <div class="list-box" , id="taxa-list">
+                        <!-- Selected taxa will be dynamically added here -->
+
+                    </div>
+                </div>
             </div>
-            <div class="list-box" , id="taxa-list">
-                <!-- Selected taxa will be dynamically added here -->
+            <div class="location-menu">
+                <div class="filter-header">
+                    Location
+                </div>
+
+                <div class="flex-column">
+                    <div class="search-box-container">
+                        <input name="Search" class="search-box" id="search-box-location" rows="1"
+                            placeholder="Search"></textarea>
+                        <img class="clear-search-button" id="clear-search-button-location" src="res/icon_X.svg">
+                    </div>
+                    <div class="filter-header">
+                        Selected Locations
+                    </div>
+                </div>
+                <div class="flex-column">
+                    <div class="result-list" id="locations-suggestions">
+                        <!-- Suggestions will be dynamically added here -->
+
+                    </div>
+                    <div class="list-box" , id="locations-list">
+                        <!-- Selected taxa will be dynamically added here -->
+
+                    </div>
+                </div>
 
             </div>
-            <div class="search-box-container">
-                <input name="Search" class="search-box" id="search-box" rows="1" placeholder="Search"></textarea>
-                <img class="clear-search-button" id="clear-search-button" src="res/icon_X.svg">
-            </div>
-            <div class="result-list">
-                <!-- Suggestions will be dynamically added here -->
+            <div class="date-menu">
+                <div class="filter-header">
+                    Date
+                </div>
+                <div class="date-container">
+                </div>
 
-            </div>
-
-
-            <div class="filter-header">
-                Location
-            </div>
-
-            <div class="list-box" , id="locations-list">
-                <!-- Selected taxa will be dynamically added here -->
-
-            </div>
-            <div class="search-box-container">
-                <input name="Search" class="search-box" id="search-box-location" rows="1"
-                    placeholder="Search"></textarea>
-                <img class="clear-search-button" id="clear-search-button-location" src="res/icon_X.svg">
-            </div>
-            <div class="location-result-list">
-                <!-- Suggestions will be dynamically added here -->
-
-            </div>
-
-            <div class="filter-header">
-                Date
-            </div>
-            <div class="date-container">
-            </div>
-
-            <div class="make-quiz-button">
-                Make Quiz
+                <div class="make-quiz-button">
+                    Make Quiz
+                </div>
             </div>
         </div>
 
 
         <div class="main-view">
+            <div class="loading-container">
+                <div class="loading-indicator">
+                </div>
+                <div class="loading-indicator-text">
+                    Loading
+                </div>
+            </div>
             <div class="image-view">
                 <!-- Images will be dynamically added here -->
 
@@ -71,7 +99,7 @@
                 <!-- Observation metadata will be dynamically added here -->
             </div>
 
-            <div class="v-box" id="controls-container">
+            <div class="controls-container">
                 <div class="options">
                     <button id="opt-0" class="option-button">
                         Bird
