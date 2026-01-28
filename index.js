@@ -16,9 +16,9 @@ let start = 0;
 
 let quizHistory = [];
 
-let n_questions = 6;
+let n_questions = 12;
 
-let n_options = 4;
+const n_options = 4;
 
 let c_species = [];
 
@@ -40,7 +40,12 @@ let quizAnswers = [];
 
 let quizOptions = [];
 
-const acceptedRanks = ["kingdom", "phylum", "class", "order", "family", "genus", "species", "subspecies"]
+let language = "en";
+
+
+let quizRank = "species";
+
+const acceptedRanks = ["order", "family", "genus", "species"]
 
 
 
@@ -60,6 +65,7 @@ let resultListLocation = document.querySelector('#locations-suggestions');
 
 let clearSearchButtonLocation = document.querySelector("#clear-search-button-location");
 
+let clearSearchButtonLanguage = document.querySelector("#clear-search-button-language");
 
 let locationList = document.querySelector('#locations-list');
 
@@ -75,6 +81,8 @@ let nextButton = document.querySelector('.next-button');
 
 let optionButtons = document.querySelectorAll('.option-button');
 
+let rankButtons = document.querySelectorAll('.rank-button');
+
 let scoreLabel = document.querySelector('.score-label');
 
 let summaryView = document.querySelector('.summary-view');
@@ -87,6 +95,18 @@ let loadingContainer = document.querySelector('.loading-container');
 let loadingIndicator = document.querySelector('.loading-indicator');
 
 let loadingIndicatorText = document.querySelector('.loading-indicator-text');
+
+let settingsMenu = document.querySelector('.settings-menu');
+
+let languageSearchBox = document.querySelector('#language-search-box');
+
+let languageSelect = document.querySelector('#language-suggestions');
+
+let languageIndicator = document.querySelector('.language-indicator');
+
+let languageDropdown = document.querySelector('.language-dropdown');
+
+let nQuestionsInput = document.querySelector('#n-questions-input');
 
 // Event listeners
 
@@ -102,6 +122,16 @@ clearSearchButton.addEventListener('click', event => {
 })
 
 
+
+languageSearchBox.addEventListener('input', event => {
+  search_language();
+})
+
+clearSearchButtonLanguage.addEventListener('click', event => {
+  languageSearchBox.value = "";
+  languageSearchBox.focus();
+  search_language();
+})
 
 
 searchBoxLocation.addEventListener('input', event => {
@@ -123,6 +153,11 @@ optionButtons.forEach((button, i) => {
   });
 });
 
+rankButtons.forEach((button, i) => {
+  button.addEventListener('click', event => {
+    setRank(i);
+  });
+});
 
 makeQuizButton.addEventListener('click', event => {
   make_quiz();
@@ -132,13 +167,31 @@ nextButton.addEventListener('click', event => {
   next_question();
 });
 
+languageIndicator.addEventListener('click', event => {
+  if (languageDropdown.style.display == "block") {
+    languageDropdown.style.display = "none";
+    return;
+  }
+  languageDropdown.style.display = "block";
+  languageSearchBox.focus();
+  languageSearchBox.value = "";
+  render(options);
+});
+
+
+nQuestionsInput.addEventListener('change', event => {
+  n_questions = parseInt(nQuestionsInput.value);
+});
+
+
+
 
 function answer(a) {
   if (!answered) {
     runs += 1;
     if (a == c_opt) {
       score += 1;
-      
+
     }
 
     quizHistory.push(a == c_opt);
@@ -180,50 +233,50 @@ async function search() {
       // filter accepted ranks
 
 
-        searchData[res["name"]] = {
-          "rank": res["rank"],
-          "commonName": res["preferred_common_name"],
-          "iNatID": res["id"]
-        }
+      searchData[res["name"]] = {
+        "rank": res["rank"],
+        "commonName": res["matched_term"],
+        "iNatID": res["id"]
+      }
 
-        let new_result_item = document.createElement('div');
-        new_result_item.classList.add('search-item');
-
-
-        resultListTaxa.appendChild(new_result_item);
-        new_result_item.id = "result-" + i;
-
-        let new_titles = document.createElement('div');
-        new_result_item.appendChild(new_titles);
-        new_titles.classList.add('taxon-title');
-        
-
-        let new_result_title = document.createElement('div');
-        new_titles.appendChild(new_result_title);
-        new_result_title.classList.add('taxon-title');
-        new_result_title.style.cursor = "pointer";
-        
+      let new_result_item = document.createElement('div');
+      new_result_item.classList.add('search-item');
 
 
-        new_result_title.innerHTML = res["name"];
+      resultListTaxa.appendChild(new_result_item);
+      new_result_item.id = "result-" + i;
 
-        let new_result_sub_title = document.createElement('div');
-        new_titles.appendChild(new_result_sub_title);
-        new_result_sub_title.classList.add('taxon-sub-title');
-        new_result_sub_title.style.cursor = "pointer";
-
-        new_result_sub_title.innerHTML = res["preferred_common_name"];
-
-        if (["genus", "species", "subspecies"].includes(res["rank"])) {
-          new_result_title.style.fontStyle = "italic";
-        }
+      let new_titles = document.createElement('div');
+      new_result_item.appendChild(new_titles);
+      new_titles.classList.add('taxon-title');
 
 
-        new_result_item.addEventListener('click', event => {
+      let new_result_title = document.createElement('div');
+      new_titles.appendChild(new_result_title);
+      new_result_title.classList.add('taxon-title');
+      new_result_title.style.cursor = "pointer";
 
-          addTaxon(res["id"], res["name"]);
 
-        });
+
+      new_result_title.innerHTML = res["name"];
+
+      let new_result_sub_title = document.createElement('div');
+      new_titles.appendChild(new_result_sub_title);
+      new_result_sub_title.classList.add('taxon-sub-title');
+      new_result_sub_title.style.cursor = "pointer";
+
+      new_result_sub_title.innerHTML = res["matched_term"];
+
+      if (["genus", "species", "subspecies"].includes(res["rank"])) {
+        new_result_title.style.fontStyle = "italic";
+      }
+
+
+      new_result_item.addEventListener('click', event => {
+
+        addTaxon(res["id"], res["name"]);
+
+      });
     })
   }
 }
@@ -252,9 +305,9 @@ function addTaxon(taxonID, taxonName) {
   new_titles.appendChild(new_taxon_sub_title);
   new_taxon_sub_title.classList.add('taxon-sub-title');
 
-  new_taxon_sub_title.innerHTML = taxonData["commonName"];
+  new_taxon_sub_title.innerHTML = taxonData[taxonID]["commonName"];
 
-  if (["genus", "species", "subspecies"].includes(taxonData["rank"])) {
+  if (["genus", "species", "subspecies"].includes(taxonData[taxonID]["rank"])) {
     new_taxon_title.style.fontStyle = "italic";
   }
 
@@ -284,7 +337,7 @@ function clear_results() {
 async function search_location() {
   if (searchBoxLocation.value == "") {
     clear_location_results();
-  } 
+  }
   else {
     let location_response = await fetch("https://api.inaturalist.org/v1/places/autocomplete?q=" + searchBoxLocation.value + "&order_by=area");
 
@@ -340,7 +393,7 @@ function addLocation(locationID, locationName) {
   new_remove_button.addEventListener('click', event => {
     locationList.removeChild(new_location_item);
     locationData = locationData.filter(id => id !== locationID);
-    
+
   });
   console.log(locationList);
   locationList.appendChild(new_location_item);
@@ -370,11 +423,12 @@ async function make_quiz() {
   optionData = [];
   ObsData = [];
   summaryView.style.display = "none";
-  
+  scoreLabel.style.display = "none";
+
   imageView.innerHTML = "";
 
   document.querySelector('.score-label').innerHTML = "Score: "
-  + score.toString() + "/" + runs.toString();
+    + score.toString() + "/" + runs.toString();
 
   species_pool = [];
 
@@ -432,7 +486,7 @@ async function make_quiz() {
   console.log(ObsData);
 
   const seen = new Set(quizData.map(item => item.taxon.id));
-  
+
 
   for (const obs of ObsData) {
     const obsId = obs.taxon.id;
@@ -443,17 +497,47 @@ async function make_quiz() {
     // add to seen set
     seen.add(obsId);
 
+
+
+    let start_offset = 2;
+    obs["answer"] = obs["taxon"];
+    if (quizRank != "species") {
+
+
+      const obsTaxonId = obs.community_taxon?.id ?? obs.taxon?.id;
+
+      const taxonWithAncestors =
+        obs.identifications?.find(i => i.taxon?.id === obsTaxonId)?.taxon;
+
+      const ancestors = taxonWithAncestors?.ancestors; // may be undefined
+      ancestors.reverse();
+      ancestors?.forEach((ancestor, i) => {
+        console.log("Ancestor rank: " + ancestor["rank"]);
+        if (quizRank == ancestor["rank"]) {
+          start_offset = i + 2;
+          obs["answer"] = ancestor;
+        }
+      });
+
+    }
+
+
+
+
     quizData.push([obs]);
 
+    console.log("Start offset for higher rank data: " + start_offset.toString());
     // get higher rank data for options
-    let higher_rank_data = await load_higher_rank_data(2, obs);
-    
+    let higher_rank_data = await load_higher_rank_data(start_offset, obs);
+
     optionData.push(higher_rank_data);
+
+
 
     // console.log(quizData.length.toString() + " questions loaded.");
 
   }
-  
+
 
   // console.log(quizData);
   quizData.forEach((obs, i) => {
@@ -463,19 +547,26 @@ async function make_quiz() {
     console.log(new_image.src);
     imageView.prepend(new_image);
 
-    
+
   });
 
-    next_question();
+  await update_language();
 
   loading("hide");
+
+  next_question();
+
+
   imageView.style.display = "flex";
   controlsContainer.style.display = "block";
   obs_metadata_container.style.display = "flex";
 
   scoreLabel = document.querySelector('.score-label');
   scoreLabel.style.display = "block";
-    
+  nextButton.innerHTML = "Next";
+
+
+
 
 
 
@@ -490,19 +581,13 @@ function next_question() {
     summary();
     return;
   }
-    
+
 
   answered = false;
   setImage(c_index);
 
   // set options
-  let random_indices = [];
-  while (random_indices.length < optionData[c_index].length) {
-    let r = Math.floor(Math.random() * optionData[c_index].length);
-    if (!random_indices.includes(r)) {
-      random_indices.push(r);
-    }
-  }
+
   let options = [];
   let k = 0;
 
@@ -511,12 +596,12 @@ function next_question() {
 
 
   while (options.length < 4) {
-    let r_option = optionData[c_index][random_indices[k]]["taxon"];
+    let r_option = optionData[c_index][k];
     console.log("Random option:");
     console.log(r_option);
     options.push(r_option);
-    if (r_option["id"] == quizData[c_index][0]["taxon"]["id"]) {
-       c_opt = options.length - 1;
+    if (r_option["id"] == quizData[c_index][0]["id"]) {
+      c_opt = options.length - 1;
     }
     k += 1;
   }
@@ -543,18 +628,18 @@ function next_question() {
   // set random correct option
   if (c_opt === 100) {
     c_opt = Math.floor(Math.random() * 4);
- 
+
 
     let new_scientific_name_span = document.createElement('span');
     let new_common_name_span = document.createElement('span');
 
-    new_scientific_name_span.innerHTML = quizData[c_index][0]["taxon"]["name"];
-    new_common_name_span.innerHTML = quizData[c_index][0]["taxon"]["preferred_common_name"] || "";
+    new_scientific_name_span.innerHTML = quizData[c_index][0]["answer"]["name"];
+    new_common_name_span.innerHTML = quizData[c_index][0]["answer"]["preferred_common_name"] || "";
     optionButtons[c_opt].innerHTML = "";
     optionButtons[c_opt].appendChild(new_scientific_name_span);
     optionButtons[c_opt].appendChild(new_common_name_span);
 
-  
+
   }
 
   obs_metadata_container.innerHTML = "Observer: " + quizData[c_index][0]["user"]["name"] +
@@ -587,10 +672,9 @@ async function load_higher_rank_data(rank, obs) {
     place_id: String(locationData),
     captive: "false",
     rank: "species",
-    quality_grade: "research",
-    include_ancestors: "false",
     expected_nearby: "true",
     order_by: "observations_count",
+    include_ancestors: "true",
     order: "desc",
     per_page: "80",
     page: "1"
@@ -604,39 +688,78 @@ async function load_higher_rank_data(rank, obs) {
   const higher_rank_data = data["results"];
   console.log(higher_rank_data.length.toString() + " entries found at rank " + rank.toString());
 
-  if (higher_rank_data.length < n_options) {
+
+  let options_taxa = [];
+  let options_taxa_ids = [];
+  higher_rank_data.forEach((res, i) => {
+    if (quizRank == "species") {
+      if (!options_taxa_ids.includes(res["taxon"]["id"]) && res["taxon"]["id"] != obs["answer"]["id"]) {
+        options_taxa.push(res["taxon"]);
+        options_taxa_ids.push(res["taxon"]["id"]);
+      }
+      return;
+    }
+    res["taxon"]["ancestors"].forEach((ancestor, j) => {
+      console.log("Ancestor rank: " + ancestor["rank"]);
+      if (ancestor["rank"] == quizRank && !options_taxa_ids.includes(ancestor["id"]) && ancestor["id"] != obs["answer"]["id"]) {
+        options_taxa.push(ancestor);
+        options_taxa_ids.push(ancestor["id"]);
+      }
+    });
+  });
+
+  console.log("Options taxa at rank " + quizRank + ":==============");
+  console.log(options_taxa);
+
+  if (options_taxa.length < n_options) {
     console.log("Not enough data, loading next rank");
     return await load_higher_rank_data(rank + 1, obs);
   }
 
   console.log("Loaded rank: " + rank.toString() + " with " + higher_rank_data.length.toString() + " entries.");
-  return higher_rank_data;
+  // pick n_options random entries
+  let higher_rank_data_final = [];
+  let used_indices = [];
+  while (higher_rank_data_final.length < n_options) {
+    let r = Math.floor(Math.random() * options_taxa.length);
+    if (!used_indices.includes(r)) {
+      higher_rank_data_final.push(options_taxa[r]);
+      used_indices.push(r);
+    }
+  }
+
+  return higher_rank_data_final;
 
 }
 
 
-function setImage(index){
+function setImage(index) {
   console.log("Setting image to index: " + index.toString());
   for (let child of imageView.children) {
-      child.style.opacity = '0';
-    }
+    child.style.opacity = '0';
+  }
   console.log(Array.from(imageView.children).reverse()[index]);
   Array.from(imageView.children).reverse()[index].style.opacity = '1';
-    
+
 }
 
 
 
 function summary() {
-  console.log("Quiz finished!");  
+  console.log("Quiz finished!");
   imageView.style.display = "none";
   controlsContainer.style.display = "none";
-  
+
   obs_metadata_container.style.display = "none";
 
   summaryView.style.display = "block";
 
-  for (let i = 0; i < n_questions; i++) { 
+  // reset the scroll
+  summaryView.scrollTop = 0;
+
+  summaryView.innerHTML = "";
+
+  for (let i = 0; i < n_questions; i++) {
     let summary_item = document.createElement('div');
     summary_item.classList.add('summary-item');
 
@@ -672,8 +795,8 @@ function summary() {
     summary_text.classList.add('summary-text-right');
     let new_scientific_name_span = document.createElement('span');
     let new_common_name_span = document.createElement('span');
-    new_scientific_name_span.innerHTML = quizData[i][0]["taxon"]["name"];
-    new_common_name_span.innerHTML = quizData[i][0]["taxon"]["preferred_common_name"];
+    new_scientific_name_span.innerHTML = quizData[i][0]["answer"]["name"];
+    new_common_name_span.innerHTML = quizData[i][0]["answer"]["preferred_common_name"];
     summary_text.appendChild(new_scientific_name_span);
     summary_text.appendChild(new_common_name_span);
     summary_text_container_box.appendChild(summary_text);
@@ -703,7 +826,7 @@ function summary() {
     });
 
 
-    if (!quizHistory[i]){
+    if (!quizHistory[i]) {
       let summary_text_container_box_wrong = document.createElement('div');
       summary_text_container_box_wrong.classList.add('summary-text-box-wrong');
       summary_text_container.appendChild(summary_text_container_box_wrong);
@@ -750,11 +873,23 @@ function summary() {
 
 
 async function get_observations() {
-  
-  let inat_response = await fetch("https://api.inaturalist.org/v1/observations?captive=false&identified=true&introduced=false&photos=true&verifiable=true&rank=species&taxon_id=" +
-    species_pool.toString() +
-  "&per_page=200&identifications=most_agree&quality_grade=research&order=desc&order_by=created_at&only_id=false");
 
+  const params = new URLSearchParams({
+    captive: "false",
+    identified: "true",
+    introduced: "false",
+    photos: "true",
+    verifiable: "true",
+    rank: "species",
+    taxon_id: species_pool.toString(),
+    per_page: "200",
+    quality_grade: "research",
+    order: "desc",
+    order_by: "created_at",
+    only_id: "false"
+  });
+
+  let inat_response = await fetch("https://api.inaturalist.org/v1/observations?" + params.toString());
   const inat_json = await inat_response.json();
 
   let results = inat_json["results"];
@@ -764,7 +899,7 @@ async function get_observations() {
     console.log("Observation taxon ID: " + obs["taxon"]["id"].toString());
     if (species_pool.includes(obs["taxon"]["id"])) {
       ObsData.push(obs);
-      species_pool = species_pool.filter(id => id !== obs["taxon"]["id"]); 
+      species_pool = species_pool.filter(id => id !== obs["taxon"]["id"]);
     }
   }
   if (species_pool.length > 0) {
@@ -774,7 +909,7 @@ async function get_observations() {
 }
 
 
-function loading(action){
+function loading(action) {
   if (action == "hide") {
     loadingContainer.style.display = "none";
     return;
@@ -785,3 +920,219 @@ function loading(action){
   }
 
 }
+
+
+
+
+// 1) Your supported locale tags (curate this list, or load it from a small JSON file)
+const SUPPORTED_LOCALES = [
+  "en", "sv", "pl", "de", "fr", "es", "pt-BR", "it", "nl", "fi", "da", "nb", "cs", "hu", "ja", "ko", "zh-Hans", "zh-Hant", "ru", "tr", "ar", "he", "vi", "id", "th", "ro", "el", "sr", "hr", "sk", "sl", "bg", "lt", "lv", "et", "uk", "fa", "hi", "bn", "ta", "te", "ml", "kn", "mr", "gu", "pa", "sw", "zu"
+];
+
+// Basic normalization for search (case-insensitive, strip diacritics)
+function norm(s) {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+// Build display objects once, cache them
+function buildLanguageOptions(locales, uiLocale = "en") {
+  const dnUI = new Intl.DisplayNames([uiLocale], { type: "language" });
+
+  return locales.map(tag => {
+    // "Swedish" (in UI locale)
+    const label = dnUI.of(tag) || tag;
+
+    // Native-ish label: ask the language to name itself
+    // (Works well for base languages; for regional tags it varies by engine)
+    const dnNative = new Intl.DisplayNames([tag], { type: "language" });
+    const nativeLabel = dnNative.of(tag) || label;
+
+    const searchKey = norm([tag, label, nativeLabel].join(" "));
+
+    return { tag, label, nativeLabel, searchKey };
+  }).sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function filterLanguageOptions(options, query) {
+  const q = norm(query);
+  if (!q) return options;
+  return options.filter(o => o.searchKey.includes(q));
+}
+
+
+
+
+
+const uiLocale = "en"; // language of *your UI*
+const options = buildLanguageOptions(SUPPORTED_LOCALES, uiLocale);
+
+
+
+
+function render(list) {
+  languageSelect.innerHTML = "";
+  for (const o of list) {
+    const opt = document.createElement("option");
+    opt.classList.add("language-option");
+    opt.innerHTML = `${capitalize(o.nativeLabel)}`;
+
+    opt.addEventListener("click", async () => {
+      await select_language(o.tag);
+      languageSelect.innerHTML = "";
+      languageSearchBox.value = "";
+      languageDropdown.style.display = "none";
+      languageIndicator.textContent = "Language: " + capitalize(o.nativeLabel);
+    });
+
+    languageSelect.appendChild(opt);
+  }
+}
+
+
+
+languageSelect.addEventListener("change", async () => {
+  const selectedLocale = languageSelect.value; // e.g., "sv"
+  // Persist preference
+  localStorage.setItem("inat_locale", selectedLocale);
+
+  // Example: re-fetch taxa in the selected locale
+  // await refreshTaxaNames(selectedLocale);
+});
+
+
+
+
+
+
+
+function search_language() {
+  if (languageSearchBox.value == "") {
+    languageSelect.innerHTML = "";
+    return;
+  }
+  render(filterLanguageOptions(options, languageSearchBox.value));
+
+}
+
+async function select_language(lang) {
+  console.log("Selected language: " + lang);
+  language = lang;
+  await update_language();
+}
+
+
+async function update_language() {
+  // implement later
+
+  // update quizData with preferred common names in selected language
+  let ids = [];
+  for (let i = 0; i < quizData.length; i++) {
+    ids.push(quizData[i][0]["answer"]["id"]);
+  }
+
+  if (ids.length > 0) {
+
+    let results = await fetchTaxaByIds(ids, language);
+
+    console.log("Updating quiz taxa with language: " + language);
+    console.log(results);
+
+    results.forEach((res, i) => {
+      console.log("Updating taxon ID: " + res["id"].toString());
+      for (let j = 0; j < quizData.length; j++) {
+        if (quizData[j][0]["answer"]["id"] == res["id"]) {
+          quizData[j][0]["answer"]["preferred_common_name"] = res["preferred_common_name"];
+        }
+      }
+    });
+  }
+
+  ids = [];
+
+  // update optionData with preferred common names in selected language
+  for (let i = 0; i < optionData.length; i++) {
+    for (let j = 0; j < optionData[i].length; j++) {
+      ids.push(optionData[i][j]["id"]);
+    }
+
+  }
+
+  console.log("Option IDs to update:");
+  console.log(ids);
+
+  if (ids.length > 0) {
+    let results = await fetchTaxaByIds(ids, language);
+
+    console.log("Updating option taxa with language: " + language);
+    console.log(results);
+
+    results.forEach((res, j) => {
+      console.log("Updating option taxon ID: " + res["id"].toString());
+      for (let i = 0; i < optionData.length; i++) {
+        for (let k = 0; k < optionData[i].length; k++) {
+          if (optionData[i][k]["id"] == res["id"]) {
+            optionData[i][k]["preferred_common_name"] = res["preferred_common_name"];
+          }
+        }
+      }
+    });
+
+  }
+
+  if (c_index > 0) {
+    c_index -= 1;
+
+    next_question(); // refresh current question
+  }
+
+  if (summaryView.style.display == "block") {
+    summary(); // refresh summary
+  }
+
+}
+
+
+async function fetchTaxaByIds(taxonIds, locale) {
+  const ids = taxonIds.join(",");
+  const params = new URLSearchParams(
+    {
+      id: ids,
+      locale: locale
+
+    }
+  );
+
+
+  const url = `https://api.inaturalist.org/v1/taxa?${params.toString()}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`iNat error ${res.status}`);
+  const json = await res.json();
+  return json.results;
+}
+
+
+function capitalize(val) {
+  return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}
+
+
+function setRank(i) {
+  quizRank = acceptedRanks[i];
+  console.log("Set quiz rank to: " + quizRank);
+  rankButtons.forEach((button) => {
+    button.classList.add('rank-button');
+  });
+  let previousSelected = document.querySelector('.rank-button-selected');
+  if (previousSelected) {
+    previousSelected.classList.remove('rank-button-selected');
+    previousSelected.classList.add('rank-button');
+  }
+  rankButtons[i].classList.remove('rank-button');
+  rankButtons[i].classList.add('rank-button-selected');
+}
+
+setRank(3);

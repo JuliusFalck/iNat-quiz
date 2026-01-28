@@ -83,7 +83,7 @@
 
 .search-box-container{
     display: flex;
-    width: 50%;
+    width: 100%;
     height: 3vh;
     font-size: 2vh;
     background-color: black;
@@ -94,8 +94,8 @@
     margin: 0;
     padding: 0;
     align-items: center;
-    
 }
+
 .search-box{
     width: 100%;
     font-size: 24px;
@@ -190,6 +190,41 @@
 }
 
 
+.rank-options{
+    display: flex;
+    height: 4vh ;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 2vw;
+    padding-right: 2vw;
+    margin-left: 4vh;
+    margin-right: 4vh;
+}
+
+.rank-button{
+    cursor: pointer;
+    font-size: 1.5vh;
+    padding: 0.25vh;
+    border-style: solid;
+    border-color: white;
+    background-color: black;
+    color: white;
+}
+
+.rank-button:hover{
+    filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(90deg) saturate(600%) contrast(0.8);
+}
+
+.rank-button-selected{
+    font-size: 1.5vh;
+    padding: 0.25vh;
+    border-style: solid;
+    border-color: green;
+    background-color: black;
+    color: white;
+}
+
 
 .date-container{
     display: flex;
@@ -203,6 +238,20 @@
     margin-bottom: 1vh;
     border-style: solid;
     color: white;
+}
+
+
+.n-questions-input{
+    width: 5vw;
+    height: 3vh;
+    font-size: 2vh;
+    background-color: black;
+    color: white;
+    border-style: solid;
+    border-color: white;
+    box-sizing: border-box;
+    text-align: center;
+    margin-left: 1vw;
 }
 
 .make-quiz-button{
@@ -347,7 +396,7 @@
     justify-self: center;
     align-items: center;
     height: 4vh;
-    width: 80%;
+    max-width: 80%;
     z-index: 3;
     margin-top: 2vh;
     color: white;
@@ -372,13 +421,12 @@
     border: 5%;
     border-color: white;
     border-style: solid;
-    padding: 1vh;
+    padding: 0.25vh;
     margin: 0.5vh;
     font-size: 2vh;
     text-align: center;
     height: 8vh;
     width: 15vw;
-    white-space: nowrap;
     display: block;
     background-color: black;
     color: white;
@@ -411,7 +459,7 @@
 
 .score-label{
     display: none;
-    font-size: 2vh;
+    font-size: 2.5vh;
     position: fixed;
     width: 50vw;
     justify-content: center;
@@ -430,6 +478,7 @@
     background-color: black;
     padding: 1vh;
     border: 0.2vh solid white;
+    margin-bottom: 2vh;
 
     box-sizing: border-box;
 
@@ -663,16 +712,95 @@
 }
 
 
+.settings-menu{
+    margin: 0;
+    padding: 0;
+    width: 25vw;
+    height: 100%;
+
+    border: 0.2vh solid white;
+    box-sizing: border-box;
+    line-height: 0;
+}
 
 
-.stats-view{
+.settings-header{
+    min-width: 50%;
+    display: flex;
+    color: white;
+    height: 3vh;
+    font-size: 2vh;
+    border: 0.2vh solid white;
+    box-sizing: border-box;
+    background-color: black;
+    align-items: center;
+    padding-left: 0.2vh;
+
+}
+
+.settings-content{
     display: flexbox;
     justify-content: center;
     align-items: center;
-    height: 50vh;
     width: 25vw;
+    height: 100%;
     margin-top: 2vh;
     margin-bottom: 2vh;
     z-index: 3;
 
 }
+
+
+
+
+.top-right-menu{
+    position: absolute;
+    top: 0vh;
+    right: 0vw;
+    display: flex;
+    flex-direction: column;
+    width: 15vw;
+    height: auto;
+    z-index: 5;
+}
+
+
+.language-indicator{
+    font-size: 2vh;
+    color: white;
+    background-color: black;
+    border: 0.2vh solid white;
+    box-sizing: border-box;
+    width: 100%;
+    height: 3vh;
+    display: flex;
+    align-items: center;
+    padding-left: 1vh;
+    cursor: pointer;
+}
+
+.language-dropdown{
+    display: none;
+    position: absolute;
+    top: 3vh;
+    right: 0vw;
+    flex-direction: column;
+    width: 15vw;
+    height: auto;
+    z-index: 6;
+}
+
+.language-option{
+    font-size: 2vh;
+    color: white;
+    background-color: black;
+    border: 0.2vh solid white;
+    box-sizing: border-box;
+    width: 100%;
+    height: 5vh;
+    display: flex;
+    align-items: center;
+    padding-left: 1vh;
+    cursor: pointer;
+}
+
