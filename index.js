@@ -43,9 +43,28 @@ let quizOptions = [];
 let language = "en";
 
 
+
 let quizRank = "species";
 
 const acceptedRanks = ["order", "family", "genus", "species"]
+
+
+let currentImage = null;
+
+let scale = 1;
+let minScale = 1;        // <-- will become "initial scale"
+const maxScale = 10;
+let x = 0, y = 0;
+
+// drag state
+let dragging = false;
+let startX = 0, startY = 0;
+let startTx = 0, startTy = 0;
+
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+
+
 
 
 
@@ -107,6 +126,8 @@ let languageIndicator = document.querySelector('.language-indicator');
 let languageDropdown = document.querySelector('.language-dropdown');
 
 let nQuestionsInput = document.querySelector('#n-questions-input');
+
+
 
 // Event listeners
 
@@ -184,6 +205,59 @@ nQuestionsInput.addEventListener('change', event => {
 });
 
 
+
+imageView.addEventListener("pointerdown", (e) => {
+  dragging = true;
+  imageView.setPointerCapture(e.pointerId);
+  startX = e.clientX;
+  startY = e.clientY;
+  startTx = x;
+  startTy = y;
+});
+
+imageView.addEventListener("pointermove", (e) => {
+  if (!dragging) return;
+  x = startTx + (e.clientX - startX);
+  y = startTy + (e.clientY - startY);
+  clampPan();
+  apply();
+});
+
+imageView.addEventListener("pointerup", () => {
+  dragging = false;
+});
+
+// Wheel zoom (zooms around cursor position)
+imageView.addEventListener("wheel", (e) => {
+  e.preventDefault();
+
+  const rect = imageView.getBoundingClientRect();
+  const px = e.clientX - rect.left;
+  const py = e.clientY - rect.top;
+
+  const ix = (px - x) / scale;
+  const iy = (py - y) / scale;
+
+  const zoomIntensity = 0.0015;
+  const nextScale = clamp(scale * Math.exp(-e.deltaY * zoomIntensity), minScale, maxScale);
+
+  x = px - ix * nextScale;
+  y = py - iy * nextScale;
+  scale = nextScale;
+
+  clampPan();
+  apply();
+}, { passive: false });
+
+
+window.addEventListener("resize", () => {
+  // keep current scale, but don’t allow it to be below minScale after resize
+  scale = Math.max(scale, minScale);
+  centerImage();
+});
+
+
+// Functions
 
 
 function answer(a) {
@@ -283,6 +357,10 @@ async function search() {
 
 
 function addTaxon(taxonID, taxonName) {
+
+  searchBox.value = "";
+  clear_results();
+
   taxonData[taxonID] = searchData[taxonName];
 
   let new_taxon_item = document.createElement('div');
@@ -328,6 +406,7 @@ function addTaxon(taxonID, taxonName) {
 
 
 function clear_results() {
+
   resultListTaxa.innerHTML = "";
 }
 
@@ -371,6 +450,8 @@ async function search_location() {
 
 
 function addLocation(locationID, locationName) {
+  searchBoxLocation.value = "";
+  clear_location_results();
   console.log("Adding location ID: " + locationID.toString());
 
   locationData.push(locationID);
@@ -548,6 +629,8 @@ async function make_quiz() {
     imageView.prepend(new_image);
 
 
+
+
   });
 
   await update_language();
@@ -584,7 +667,7 @@ function next_question() {
 
 
   answered = false;
-  setImage(c_index);
+  
 
   // set options
 
@@ -646,6 +729,7 @@ function next_question() {
     " | Location: " + quizData[c_index][0]["place_guess"] +
     " | Date: " + new Date(quizData[c_index][0]["observed_on"]).toLocaleDateString();
 
+  setImage(c_index);
 
   c_index += 1;
 
@@ -653,7 +737,7 @@ function next_question() {
     nextButton.innerHTML = "Finish";
   }
 
-
+  
 
 }
 
@@ -741,6 +825,14 @@ function setImage(index) {
   console.log(Array.from(imageView.children).reverse()[index]);
   Array.from(imageView.children).reverse()[index].style.opacity = '1';
 
+  currentImage = Array.from(imageView.children).reverse()[index];
+
+  console.log("Current image set:");
+  console.log(currentImage);
+  // reset zoom and pan
+  // wait a frame to ensure the image is fully loaded
+
+  whenImageReady(currentImage, initView);
 }
 
 
@@ -1135,4 +1227,79 @@ function setRank(i) {
   rankButtons[i].classList.add('rank-button-selected');
 }
 
+
+function apply() {
+  console.log(`Applying transform: translate(${x}px, ${y}px) scale(${scale})`);
+  currentImage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+}
+
+
+function centerImage() {
+  if (!currentImage) return;
+
+  const vw = imageView.clientWidth;
+  const vh = imageView.clientHeight;
+  const iw = currentImage.naturalWidth;
+  const ih = currentImage.naturalHeight;
+
+  x = (vw - iw * scale) / 2;
+  y = (vh - ih * scale) / 2;
+  apply();
+}
+
+function initView() {
+  let vw = imageView.clientWidth;
+  let vh = imageView.clientHeight;
+  let iw = currentImage.naturalWidth;
+  let ih = currentImage.naturalHeight;
+
+  console.log(`Image size: ${iw}x${ih}, View size: ${vw}x${vh}`);
+  // Option A: keep original size
+  // scale = 1;
+
+  // Option B (common): fit whole image inside imageView ("contain")
+  scale = Math.min(vw / iw, vh / ih);
+
+  minScale = scale;      // <-- prevents zooming out below initial level
+  centerImage();
+}
+
+function clampPan() {
+  const vw = imageView.clientWidth;
+  const vh = imageView.clientHeight;
+  const iw = currentImage.naturalWidth * scale;
+  const ih = currentImage.naturalHeight * scale;
+
+  // X axis
+  if (iw <= vw) {
+    x = (vw - iw) / 2;                 // center if image narrower
+  } else {
+    const minX = vw - iw;
+    const maxX = 0;
+    x = clamp(x, minX, maxX);
+  }
+
+  // Y axis
+  if (ih <= vh) {
+    y = (vh - ih) / 2;                 // center if image shorter
+  } else {
+    const minY = vh - ih;
+    const maxY = 0;
+    y = clamp(y, minY, maxY);
+  }
+}
+
+function whenImageReady(img, fn) {
+  if (img.complete && img.naturalWidth > 0) {
+    fn(); // already loaded (often from cache)
+  } else {
+    img.addEventListener("load", fn, { once: true });
+    img.addEventListener("error", () => {
+      console.error("Image failed to load:", img.src);
+    }, { once: true });
+  }
+}
+
+
+// Initial setup
 setRank(3);

@@ -370,25 +370,38 @@
 
 
 .image-view{
-    display: flex;
+    height: 60vh;
+    width: 50vw;
     justify-content: center;
+    position: relative;
     height: 60vh;
     width: 100%;
-    z-index: 3;
+    border: 1px solid white;
+    overflow: hidden;
+    touch-action: none; /* important for pointer events (prevents browser panning) */
+    cursor: grab;
+
 
 }
+
+  .image-view:active { cursor: grabbing; }
+
 
 
 .image-view-item{
-    height: 60vh;
-    width: 50vw;
     object-fit: scale-down;
     background-color: black;
     position: absolute;
-    top: 100px;
     transition: opacity 0.5s;
-    cursor: pointer;
+    user-select: none;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0; /* important for cursor-zoom math */
+    -webkit-user-drag: none;
+    pointer-events: none; /* so dragging grabs the viewport, not the image */
+
 }
+
 
 .observation-metadata-container{
     display: flex;
