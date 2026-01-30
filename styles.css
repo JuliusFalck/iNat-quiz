@@ -98,7 +98,7 @@
 
 .search-box{
     width: 100%;
-    font-size: 24px;
+    font-size: 2vh;
     resize: none;
     color: white;
     background-color: black;
@@ -226,18 +226,47 @@
 }
 
 
-.date-container{
+
+.months-options{
     display: flex;
-    height: 3vh ;
+    height: 4vh ;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    padding-left: 2vw;
-    padding-right: 2vw;
-    margin-top: 1vh;
-    margin-bottom: 1vh;
+    margin-left: 0.25vw;
+    margin-right: 0.25vw;
+}
+
+.month-button{
+    width: 1.8vw;
+    font-size: 1.5vh;
+    text-align: center;
+    padding: 0;
     border-style: solid;
+    border-color: white;
+    background-color: black;
     color: white;
+
+}
+
+.month-button:hover{
+    filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(90deg) saturate(600%) contrast(0.8);
+}
+
+.month-button-selected{
+    width: 1.8vw;
+    font-size: 1.5vh;
+    text-align: center;
+    padding: 0;
+    border-style: solid;
+    border-color: green;
+    background-color: black;
+    color: white;
+}
+
+.month-button-selected:hover{
+    border-color: white;
+    color: green;
 }
 
 
@@ -376,7 +405,7 @@
     position: relative;
     height: 60vh;
     width: 100%;
-    border: 1px solid white;
+    border: 0.1vh solid white;
     overflow: hidden;
     touch-action: none; /* important for pointer events (prevents browser panning) */
     cursor: grab;
@@ -658,7 +687,7 @@
     left: 50%;
     right: 50%;
     background-color: white;
-    width: 2px;
+    width: 0.1vh;
     height: 45vh;
     z-index: 6;
     top: 7%;

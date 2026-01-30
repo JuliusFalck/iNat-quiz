@@ -49,6 +49,8 @@ let quizRank = "species";
 const acceptedRanks = ["order", "family", "genus", "species"]
 
 
+let months = [true, true, true, true, true, true, true, true, true, true, true, true];
+
 let currentImage = null;
 
 let scale = 1;
@@ -127,7 +129,7 @@ let languageDropdown = document.querySelector('.language-dropdown');
 
 let nQuestionsInput = document.querySelector('#n-questions-input');
 
-
+let monthButtons = document.querySelectorAll('.month-button-selected');
 
 // Event listeners
 
@@ -177,6 +179,13 @@ optionButtons.forEach((button, i) => {
 rankButtons.forEach((button, i) => {
   button.addEventListener('click', event => {
     setRank(i);
+  });
+});
+
+
+monthButtons.forEach((button, i) => {
+  button.addEventListener('click', event => {
+    setMonth(i);
   });
 });
 
@@ -496,27 +505,38 @@ async function make_quiz() {
 
   console.log(locationData[0]);
 
+  // reset vars
+  quizHistory = [];
+  quizAnswers = [];
+  quizOptions = [];
+  quizData = [];
+  optionData = [];
+  ObsData = [];
+  species_pool = [];
   c_index = 0;
   score = 0;
   runs = 0;
 
-  quizData = [];
-  optionData = [];
-  ObsData = [];
+
+
+
+  // hide quiz
   summaryView.style.display = "none";
   scoreLabel.style.display = "none";
-
   imageView.innerHTML = "";
 
+
+  // rest score label
   document.querySelector('.score-label').innerHTML = "Score: "
     + score.toString() + "/" + runs.toString();
 
-  species_pool = [];
 
 
   // loop through taxonData
   for (const taxonID in taxonData) {
     console.log(taxonData[taxonID]["iNatID"]);
+    console.log("Months selected for query:");
+    console.log(months.map((m, i) => m ? (i + 1).toString() : null).filter(m => m !== null).toString());
 
     const params = new URLSearchParams({
       taxon_id: String(taxonData[taxonID].iNatID),
@@ -524,12 +544,13 @@ async function make_quiz() {
       captive: "false",
       rank: "species",
       photos: "true",
+      month: months.map((m, i) => m ? (i + 1).toString() : null).filter(m => m !== null).toString(),
       quality_grade: "research",
       include_ancestors: "false",
       expected_nearby: "true",
       order_by: "observations_count",
       order: "desc",
-      per_page: "60",
+      per_page: "200",
       page: "1"
     });
 
@@ -637,8 +658,6 @@ async function make_quiz() {
 
   loading("hide");
 
-  next_question();
-
 
   imageView.style.display = "flex";
   controlsContainer.style.display = "block";
@@ -647,6 +666,11 @@ async function make_quiz() {
   scoreLabel = document.querySelector('.score-label');
   scoreLabel.style.display = "block";
   nextButton.innerHTML = "Next";
+
+  next_question();
+
+
+  
 
 
 
@@ -667,7 +691,7 @@ function next_question() {
 
 
   answered = false;
-  
+
 
   // set options
 
@@ -737,7 +761,7 @@ function next_question() {
     nextButton.innerHTML = "Finish";
   }
 
-  
+
 
 }
 
@@ -1162,12 +1186,14 @@ async function update_language() {
     console.log("Updating option taxa with language: " + language);
     console.log(results);
 
-    results.forEach((res, j) => {
-      console.log("Updating option taxon ID: " + res["id"].toString());
+    ids.forEach((id) => {
       for (let i = 0; i < optionData.length; i++) {
         for (let k = 0; k < optionData[i].length; k++) {
-          if (optionData[i][k]["id"] == res["id"]) {
-            optionData[i][k]["preferred_common_name"] = res["preferred_common_name"];
+          if (optionData[i][k]["id"] == id) {
+            let res = results.find(r => r.id === id);
+            if (res) {
+              optionData[i][k]["preferred_common_name"] = res["preferred_common_name"];
+            }
           }
         }
       }
@@ -1189,16 +1215,20 @@ async function update_language() {
 
 
 async function fetchTaxaByIds(taxonIds, locale) {
+
   const ids = taxonIds.join(",");
   const params = new URLSearchParams(
     {
       id: ids,
-      locale: locale
+      locale: locale,
+      per_page: "100"
 
     }
   );
-
-
+  console.log("Fetching taxa by IDs:");
+  console.log(ids);
+  console.log("With locale:");
+  console.log(locale);
   const url = `https://api.inaturalist.org/v1/taxa?${params.toString()}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`iNat error ${res.status}`);
@@ -1301,5 +1331,17 @@ function whenImageReady(img, fn) {
 }
 
 
+function setMonth(i){
+  console.log("Toggling month: " + (i+1).toString());
+  monthButtons[i].classList.remove('month-button-selected');
+  monthButtons[i].classList.add('month-button');
+
+  months[i] = !months[i];
+  console.log("Months selected:");
+  console.log(months);
+
+}
+
 // Initial setup
 setRank(3);
+
