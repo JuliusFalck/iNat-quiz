@@ -367,8 +367,10 @@ async function search() {
 
 function addTaxon(taxonID, taxonName) {
 
+
   searchBox.value = "";
   clear_results();
+
 
   taxonData[taxonID] = searchData[taxonName];
 
@@ -411,6 +413,7 @@ function addTaxon(taxonID, taxonName) {
   new_taxon_item.id = "taxon-" + taxonID;
   taxaList.appendChild(new_taxon_item);
 
+  toggleMakeQuizButton();
 }
 
 
@@ -461,6 +464,8 @@ async function search_location() {
 function addLocation(locationID, locationName) {
   searchBoxLocation.value = "";
   clear_location_results();
+
+  
   console.log("Adding location ID: " + locationID.toString());
 
   locationData.push(locationID);
@@ -487,6 +492,8 @@ function addLocation(locationID, locationName) {
   });
   console.log(locationList);
   locationList.appendChild(new_location_item);
+
+  toggleMakeQuizButton();
 }
 
 
@@ -499,7 +506,14 @@ function clear_location_results() {
 
 async function make_quiz() {
 
+
+  buttonQuiz.disabled = false;
+
   loading("show");
+
+  if (mq.matches){
+    showQuiz();
+  }
 
   console.log(taxonData);
 
@@ -550,7 +564,7 @@ async function make_quiz() {
       expected_nearby: "true",
       order_by: "observations_count",
       order: "desc",
-      per_page: "200",
+      per_page: "400",
       page: "1"
     });
 
@@ -660,7 +674,7 @@ async function make_quiz() {
 
 
   imageView.style.display = "flex";
-  controlsContainer.style.display = "block";
+  controlsContainer.style.display = "blockz";
   obs_metadata_container.style.display = "flex";
 
   scoreLabel = document.querySelector('.score-label');
@@ -670,7 +684,7 @@ async function make_quiz() {
   next_question();
 
 
-  
+
 
 
 
@@ -886,18 +900,18 @@ function summary() {
     question_number.innerHTML = (i + 1).toString() + ".";
     summary_item.appendChild(question_number);
 
-    let observation_link = document.createElement('img');
-    observation_link.classList.add('inat-link');
-    summary_item.appendChild(observation_link);
 
-    observation_link.addEventListener('click', event => {
-      window.open("https://www.inaturalist.org/observations/" + quizData[i][0]["id"].toString(), '_blank');
-    });
+
 
     let summary_image = document.createElement('img');
     summary_image.classList.add('summary-image');
     summary_image.src = quizData[i][0]["photos"][0]["url"].replace("square", "large");
     summary_item.appendChild(summary_image);
+
+    summary_image.addEventListener('click', event => {
+      window.open("https://www.inaturalist.org/observations/" + quizData[i][0]["id"].toString(), '_blank');
+    });
+
 
     let summary_text_container = document.createElement('div');
     summary_text_container.classList.add('summary_text_container');
@@ -998,11 +1012,12 @@ async function get_observations() {
     verifiable: "true",
     rank: "species",
     taxon_id: species_pool.toString(),
-    per_page: "200",
+    per_page: "600",
     quality_grade: "research",
     order: "desc",
-    order_by: "created_at",
-    only_id: "false"
+    order_by: "random",
+    only_id: "false",
+    locale: language
   });
 
   let inat_response = await fetch("https://api.inaturalist.org/v1/observations?" + params.toString());
@@ -1256,10 +1271,9 @@ function setRank(i) {
   rankButtons[i].classList.remove('rank-button');
   rankButtons[i].classList.add('rank-button-selected');
 }
-
+1
 
 function apply() {
-  console.log(`Applying transform: translate(${x}px, ${y}px) scale(${scale})`);
   currentImage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
 }
 
@@ -1331,10 +1345,16 @@ function whenImageReady(img, fn) {
 }
 
 
-function setMonth(i){
-  console.log("Toggling month: " + (i+1).toString());
-  monthButtons[i].classList.remove('month-button-selected');
-  monthButtons[i].classList.add('month-button');
+function setMonth(i) {
+  console.log("Toggling month: " + (i + 1).toString());
+  if (!months[i]) {
+    monthButtons[i].classList.remove('month-button');
+    monthButtons[i].classList.add('month-button-selected');
+  }
+  else {
+    monthButtons[i].classList.remove('month-button-selected');
+    monthButtons[i].classList.add('month-button');
+  }
 
   months[i] = !months[i];
   console.log("Months selected:");
@@ -1345,3 +1365,58 @@ function setMonth(i){
 // Initial setup
 setRank(3);
 
+function toggleMakeQuizButton(){
+  console.log("Toggling Make Quiz button. Taxon data count: " + Object.keys(taxonData).length.toString() + ", Location data count: " + locationData.length.toString());
+  if (Object.keys(taxonData).length > 0 && locationData.length > 0) {
+    makeQuizButton.disabled = false;
+  }
+  else {
+    makeQuizButton.disabled = true;
+  }
+  console.log("Make Quiz button disabled: " + makeQuizButton.disabled.toString());
+}
+
+
+const body = document.body;
+
+const buttonFilters = document.getElementById("button-filters");
+const buttonQuiz = document.getElementById("button-quiz");
+
+const mq = window.matchMedia("(max-width: 768px)");
+console.log("Initial media query match: " + mq.matches.toString());
+function closePanels() {
+  body.classList.remove("show-filters", "show-settings");
+}
+
+function showFilters() {
+  body.classList.add("show-filters");
+  body.classList.remove("show-quiz");
+  buttonFilters.classList.add("toolbar-btn-selected");
+  buttonQuiz.classList.remove("toolbar-btn-selected");
+  buttonQuiz.classList.add("toolbar-btn");
+  buttonFilters.classList.remove("toolbar-btn");
+
+}
+
+function showQuiz() {
+  body.classList.add("show-quiz");
+  body.classList.remove("show-filters");
+  buttonQuiz.classList.add("toolbar-btn-selected");
+  buttonFilters.classList.remove("toolbar-btn-selected");
+  buttonFilters.classList.add("toolbar-btn");
+  buttonQuiz.classList.remove("toolbar-btn");
+}
+
+buttonFilters?.addEventListener("click", showFilters);
+buttonQuiz?.addEventListener("click", showQuiz);
+
+
+// close panels when switching to desktop
+mq.addEventListener("change", (e) => {
+  if (!e.matches) closePanels();
+});
+
+// optional: ESC closes
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closePanels();
+});

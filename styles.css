@@ -9,11 +9,11 @@
 
 .main-header{
     display: flex;
-    position: relative;
+    position: fixed;
     justify-content: center;
     width: 100%;
-    height: 5vh;
-    font-size: 3vh;
+    height: 3vh;
+    font-size: 2vh;
     background-color: black;
     color: white;
     top: 0vh;
@@ -23,11 +23,24 @@
 }
 
 .content-container{
-    display: flex;
+    display: grid;
+    position: fixed;
+    top: 3vh;
+    grid-template-columns: repeat(3, 1fr);
     width: 100vw;
-    height: 95vh;
+    height: 97vh;
     justify-content: center;
     align-items: center;
+}
+
+
+
+.toggle-menu-button{
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 
@@ -269,6 +282,21 @@
     color: green;
 }
 
+.n-questions-menu{
+    display: flex;
+    height: 6vh ;
+    flex-direction: row;
+    justify-content: center;
+    min-width: 50%;
+    display: flex;
+    color: white;
+    font-size: 2vh;
+    border: 0.2vh solid white;
+    box-sizing: border-box;
+    background-color: black;
+    align-items: center;
+    gap: 2vw;
+}
 
 .n-questions-input{
     width: 5vw;
@@ -280,15 +308,17 @@
     border-color: white;
     box-sizing: border-box;
     text-align: center;
-    margin-left: 1vw;
 }
 
 .make-quiz-button{
+    position: fixed;
     display: flex;
     margin: 2.5vw;
     font-size: 2vh;
+    bottom: 1vh;
     width: 20vw;
     height: 6vh;
+    justify-self: center;
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -299,12 +329,19 @@
     cursor: pointer;
 }
 
-.make-quiz-button:hover{
+.make-quiz-button:disabled{
+    border-color: gray;
+    color: gray;
+    cursor: not-allowed;
+}
+
+.make-quiz-button:hover:not(:disabled){
     filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(90deg) saturate(600%) contrast(0.8);
 }
 
 
 .main-view{
+    top: 3vh;
     justify-content: center;
     width: 50vw;
     display: block;
@@ -333,6 +370,8 @@
 .controls-container{
     display: none;
     height: max-content;
+    justify-content: center;
+    align-items: center;
     z-index: 3;
 
 
@@ -405,7 +444,6 @@
     position: relative;
     height: 60vh;
     width: 100%;
-    border: 0.1vh solid white;
     overflow: hidden;
     touch-action: none; /* important for pointer events (prevents browser panning) */
     cursor: grab;
@@ -460,14 +498,11 @@
 }
 
 .option-button{
-    border: 5%;
     border-color: white;
     border-style: solid;
-    padding: 0.25vh;
-    margin: 0.5vh;
     font-size: 2vh;
     text-align: center;
-    height: 8vh;
+    height: 9vh;
     width: 15vw;
     display: block;
     background-color: black;
@@ -483,7 +518,7 @@
     
         &:first-of-type {
             font-style: italic;
-            line-height: 1.5;
+            line-height: 1;
             font-size: 2vh;
         }
     }
@@ -493,7 +528,7 @@
 .options{
     display: grid;
     grid-template-columns: repeat(2, 15vw);
-    gap: 0 1vh;
+    gap: 1vh 1vh;
     justify-content: center;
     align-items: center;
     width: 100%;
@@ -565,7 +600,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    height: 8vh;
+    min-height: 8vh;
     border: 0.2vh solid green;
 }
 
@@ -574,7 +609,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    height: 8vh;
+    min-height: 8vh;
     border: 0.2vh solid red;
 }
 
@@ -583,7 +618,6 @@
     font-size: 3vh;
     text-align: left;
     width: 15vw;
-    white-space: nowrap;
     display: block;
     background-color: black;
     color: white;
@@ -799,9 +833,9 @@
     position: absolute;
     top: 0vh;
     right: 0vw;
-    display: flex;
+    display: block;
     flex-direction: column;
-    width: 15vw;
+    width: 10vw;
     height: auto;
     z-index: 5;
 }
@@ -827,7 +861,7 @@
     top: 3vh;
     right: 0vw;
     flex-direction: column;
-    width: 15vw;
+    width: 10vw;
     height: auto;
     z-index: 6;
 }
@@ -846,3 +880,289 @@
     cursor: pointer;
 }
 
+:root{
+  --header-h: 7vh; /* matches your .main-header height */
+}
+
+/* Make language menu stay visible always (desktop + mobile) */
+.top-right-menu{
+  position: absolute;   /* was absolute */
+  top: 0;
+  right: 0;
+  z-index: 100;
+}
+
+/* Mobile toolbar buttons (hidden on desktop) */
+.mobile-toolbar{
+  display: none;
+  position: absolute;
+  background-color: rgb(12, 12, 12);
+  bottom: 0;
+  height: 4vh;
+  align-items: center;
+  z-index: 110; /* above header content */
+}
+
+.header-title{
+  margin: 0 auto;
+}
+
+/* Button styling consistent with your theme */
+.toolbar-btn{
+  cursor: pointer;
+  font-size: 2vh;
+  border: 0 solid white;
+  background-color: rgb(12, 12, 12);
+  color: white;
+}
+
+
+.toolbar-btn-selected{
+  cursor: pointer;
+  font-size: 2vh;
+  background-color: rgb(12, 12, 12);
+
+  color: white;
+  border: 0vh solid green;
+  border-bottom: 0.2vh solid green;
+  
+
+}
+
+.toolbar-btn:disabled{
+  border-color: gray;
+  color: gray;
+  cursor: not-allowed;
+}
+
+/* ===== MOBILE LAYOUT ===== */
+@media (max-width: 768px){
+
+  /* show toolbar buttons */
+  .mobile-toolbar{
+    display: flex;
+    width: 100vw;
+    align-items: center;
+    justify-content: center;
+    gap: 10vw;
+  }
+
+  /* make the main content single-column (main-view stays visible) */
+  .content-container{
+    display: block;         /* overrides your 3-col grid */
+    width: 100vw;
+    top: 3vh;
+    height: calc(100vh - var(--header-h));
+  }
+
+  .main-view{
+    width: 100vw;           /* overrides 50vw */
+    top: 3vh;
+    height: calc(100vh - var(--header-h));
+  }
+
+  /* Panels become off-canvas overlays */
+  .filter-menu,
+  .main-view{
+    position: fixed;
+    top: 3vh; /* below header */
+    width: 100vw;
+    height: calc(100vh - var(--header-h));
+    overflow-y: auto;
+    background: black;
+    z-index: 60;
+    transition: transform 200ms ease;
+    will-change: transform;
+  }
+  .options{
+    grid-template-columns: repeat(2, 45vw);
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  .option-button{
+    width: 45vw;
+  }
+
+  .next-button{
+    width: 92vw;
+    height: 5vh;
+  }
+  .month-button{
+    width: 8vw;
+    }
+
+  .month-button-selected{
+    width: 8vw;
+}
+
+  .filter-menu{
+    left: 0;
+    overflow: hidden;
+   
+    transform: translateX(0);
+  }
+  .main-view{
+    left: 0;
+    overflow: hidden;
+    transform: translateX(100%);
+  }
+
+  .content-container{
+    overflow-y: hidden;
+  }
+
+  .image-view{
+    height: 59vh;
+        margin-top: 1vh;
+    
+  }
+
+  .observation-metadata-container{
+    margin-top: 0vh;
+    height: 3vh;
+    font-size: 1vh;
+
+  }
+
+.n-questions-menu{
+    gap: 6vw;
+}
+
+.n-questions-input{
+    width: 10vw;
+    height: 4vh;
+    font-size: 3vh;
+    background-color: black;
+    color: white;
+    border-style: solid;
+    border-color: white;
+    box-sizing: border-box;
+    text-align: center;
+    margin-left: 1vw;
+}
+
+.make-quiz-button{
+    width: 90vw;
+
+}
+
+ .score-label{
+    display: block;
+    font-size: 2.5vh;
+    position: fixed;
+    margin: 0;
+    padding: 0;   
+    width: 100vw;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+    z-index: 70;
+  }
+  /* Show when toggled */
+  body.show-filters .filter-menu{
+    transform: translateX(0);
+  }
+  body.show-quiz .main-view{
+    transform: translateX(0);
+  }
+
+  .summary-view{
+    width: 100vw;
+    height: calc(100vh - var(--header-h));
+    padding: 0;
+  }
+
+.summary-item{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 40vh;
+    background-color: black;
+    border: 0.2vh solid white;
+    box-sizing: border-box;
+    padding: 2vh;
+    box-sizing: border-box;
+}
+
+.summary-image{
+    width: 60vw;
+    height: 25vh;
+    object-fit: scale-down;
+    margin-bottom: 1vh;
+}
+
+.summary-text-right{
+    padding: 1vh;
+    font-size: 3vh;
+    text-align: left;
+    width: 50vw;
+    display: block;
+    background-color: black;
+    color: white;
+    cursor: pointer;
+
+    > span {
+        display: block;
+        font-style: normal;
+        line-height: 2.5vh;
+        font-size: 2vh;
+
+    
+        &:first-of-type {
+            font-style: italic;
+            line-height: 2.5vh;
+            font-size: 2.5vh;
+        }
+    }
+}
+
+
+
+.summary-text-wrong{
+
+    text-align: left;
+    padding: 1vh;
+    width: 50vw;
+    display: block;
+    background-color: black;
+    color: white;
+    cursor: pointer;
+    text-decoration: line-through solid rgba(255, 0, 0, 0.75) 0.25vh;
+  
+
+    > span {
+        display: block;
+        font-style: normal;
+        line-height: 2.5vh;
+        font-size: 2vh;
+
+
+    
+        &:first-of-type {
+            font-style: italic;
+            line-height: 2.5vh;
+            font-size: 2.5vh;
+        }
+    }
+}
+
+
+  /* IMPORTANT: your internal menus use 25vw; override to full width on mobile */
+  .taxa-menu,
+  .location-menu,
+  .settings-content{
+    width: 100%;
+  }
+
+  /* Your language box is 15vw; make it usable on mobile */
+  .top-right-menu,
+  .language-dropdown{
+    width: 35vw;
+  }
+}

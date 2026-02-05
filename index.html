@@ -6,9 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
+
 <body class="dark-body">
     <div class="main-header">
-        iNat-Quiz
+
+
+        <div class="header-title">iNat-Quiz</div>
+    </div>
+
+    <div class="mobile-toolbar">
+        <button type="button" id="button-filters" class="toolbar-btn-selected">Filters</button>
+        <button type="button" disabled id="button-quiz" class="toolbar-btn">Quiz</button>
     </div>
     <div class="content-container">
 
@@ -103,16 +111,16 @@
             </div>
 
             <div class="n-questions-menu">
-                <div class="filter-header">
+                <div>
                     Number of Questions
-                <input type="number" id="n-questions-input" class="n-questions-input" value="12" min="1" max="24">
                 </div>
+                <input type="number" id="n-questions-input" class="n-questions-input" value="12" min="1" max="24">
             </div>
 
 
-            <div class="make-quiz-button">
+            <button disabled class="make-quiz-button">
                 Make Quiz
-            </div>
+            </button>
 
         </div>
 
@@ -167,6 +175,7 @@
 
         </div>
     </div>
+
 
     <div class="top-right-menu">
         <div class="language-indicator">Language: English</div>
