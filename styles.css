@@ -463,6 +463,7 @@
     user-select: none;
     top: 0;
     left: 0;
+    touch-action: none;
     transform-origin: 0 0; /* important for cursor-zoom math */
     -webkit-user-drag: none;
     pointer-events: none; /* so dragging grabs the viewport, not the image */
