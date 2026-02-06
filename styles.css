@@ -936,7 +936,7 @@
 }
 
 /* ===== MOBILE LAYOUT ===== */
-@media (max-width: 768px){
+@media (max-aspect-ratio: 1/1){
 
   /* show toolbar buttons */
   .mobile-toolbar{
