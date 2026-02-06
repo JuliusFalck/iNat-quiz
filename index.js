@@ -674,7 +674,7 @@ async function make_quiz() {
 
 
   imageView.style.display = "flex";
-  controlsContainer.style.display = "blockz";
+  controlsContainer.style.display = "block";
   obs_metadata_container.style.display = "flex";
 
   scoreLabel = document.querySelector('.score-label');
@@ -1116,7 +1116,7 @@ function render(list) {
       languageSelect.innerHTML = "";
       languageSearchBox.value = "";
       languageDropdown.style.display = "none";
-      languageIndicator.textContent = "Language: " + capitalize(o.nativeLabel);
+      languageIndicator.textContent = capitalize(o.nativeLabel);
     });
 
     languageSelect.appendChild(opt);
