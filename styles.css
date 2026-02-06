@@ -493,9 +493,10 @@
     border-style: solid;
     color: white;
     border-color: white;
+    margin-bottom: 0.5dvh;
 }
 
-.next-button:hover{
+.next-button:active{
     filter: grayscale(100%) brightness(40%) sepia(100%) hue-rotate(90deg) saturate(600%) contrast(0.8);
 }
 .option-button{
@@ -883,7 +884,7 @@
 }
 
 :root{
-  --header-h: 7vh; /* matches your .main-header height */
+  --header-h: 8dvh; /* matches your .main-header height */
 }
 
 /* Make language menu stay visible always (desktop + mobile) */
@@ -1073,7 +1074,7 @@
 
   .summary-view{
     width: 100vw;
-    height: calc(100dvh - var(--header-h) - 5dvh); /* full height minus header and some margin */
+    height: calc(100dvh - var(--header-h) - 10dvh); /* full height minus header and some margin */
     padding: 0;
   }
 
