@@ -215,26 +215,175 @@ nQuestionsInput.addEventListener('change', event => {
 
 
 
-imageView.addEventListener("pointerdown", (e) => {
+// imageView.addEventListener("pointerdown", (e) => {
+//   dragging = true;
+//   imageView.setPointerCapture(e.pointerId);
+//   startX = e.clientX;
+//   startY = e.clientY;
+//   startTx = x;
+//   startTy = y;
+// });
+
+// imageView.addEventListener("pointermove", (e) => {
+//   if (!dragging) return;
+//   x = startTx + (e.clientX - startX);
+//   y = startTy + (e.clientY - startY);
+//   clampPan();
+//   apply();
+// });
+
+// imageView.addEventListener("pointerup", () => {
+//   dragging = false;
+// });
+
+
+// Recommended (in case CSS isn't set):
+imageView.style.touchAction = "none";
+
+
+
+// Track active pointers for pinch
+const pointers = new Map(); // pointerId -> { clientX, clientY, x, y }
+let dragPointerId = null;
+
+// Pinch state
+let pinch = null; // { startDist, startScale, anchorIx, anchorIy }
+
+function getLocalPoint(e) {
+  const rect = imageView.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+function dist(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function midpoint(a, b) {
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
+function beginDrag(e) {
   dragging = true;
-  imageView.setPointerCapture(e.pointerId);
+  dragPointerId = e.pointerId;
   startX = e.clientX;
   startY = e.clientY;
   startTx = x;
   startTy = y;
+}
+
+function endDrag() {
+  dragging = false;
+  dragPointerId = null;
+}
+
+function beginPinch() {
+  const pts = [...pointers.values()];
+  if (pts.length !== 2) return;
+
+  const p1 = pts[0], p2 = pts[1];
+  const d = dist(p1, p2);
+  const mid = midpoint(p1, p2);
+
+  // Anchor point in image coordinates under the pinch midpoint
+  const anchorIx = (mid.x - x) / scale;
+  const anchorIy = (mid.y - y) / scale;
+
+  pinch = {
+    startDist: d,
+    startScale: scale,
+    anchorIx,
+    anchorIy
+  };
+}
+
+function updatePinch() {
+  if (!pinch) return;
+  const pts = [...pointers.values()];
+  if (pts.length !== 2) return;
+
+  const p1 = pts[0], p2 = pts[1];
+  const d = dist(p1, p2);
+  const mid = midpoint(p1, p2);
+
+  const factor = d / pinch.startDist;
+  const nextScale = clamp(pinch.startScale * factor, minScale, maxScale);
+
+  // Keep the anchored image point under the midpoint
+  x = mid.x - pinch.anchorIx * nextScale;
+  y = mid.y - pinch.anchorIy * nextScale;
+  scale = nextScale;
+
+  clampPan();
+  apply();
+}
+
+imageView.addEventListener("pointerdown", (e) => {
+  imageView.setPointerCapture(e.pointerId);
+
+  const p = getLocalPoint(e);
+  pointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY, x: p.x, y: p.y });
+
+  if (pointers.size === 1) {
+    // start 1-finger pan
+    beginDrag(e);
+  } else if (pointers.size === 2) {
+    // start pinch
+    endDrag();
+    beginPinch();
+  }
 });
 
 imageView.addEventListener("pointermove", (e) => {
-  if (!dragging) return;
+  if (!pointers.has(e.pointerId)) return;
+
+  const p = getLocalPoint(e);
+  pointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY, x: p.x, y: p.y });
+
+  // 2-finger pinch zoom
+  if (pointers.size === 2) {
+    updatePinch();
+    return;
+  }
+
+  // 1-finger pan
+  if (!dragging || e.pointerId !== dragPointerId) return;
+
   x = startTx + (e.clientX - startX);
   y = startTy + (e.clientY - startY);
+
   clampPan();
   apply();
 });
 
-imageView.addEventListener("pointerup", () => {
-  dragging = false;
-});
+function endPointer(e) {
+  pointers.delete(e.pointerId);
+
+  // If we were pinching and one finger lifts, allow continuing pan with remaining finger
+  if (pointers.size < 2) pinch = null;
+
+  if (pointers.size === 1) {
+    const remainingId = [...pointers.keys()][0];
+    // continue panning from remaining finger
+    const remaining = pointers.get(remainingId);
+    dragging = true;
+    dragPointerId = remainingId;
+
+    // reset drag baseline to current transform
+    startX = remaining.clientX;
+    startY = remaining.clientY;
+    startTx = x;
+    startTy = y;
+  } else {
+    endDrag();
+  }
+}
+
+imageView.addEventListener("pointerup", endPointer);
+imageView.addEventListener("pointercancel", endPointer);
+imageView.addEventListener("lostpointercapture", endPointer);
+
+
+
 
 // Wheel zoom (zooms around cursor position)
 imageView.addEventListener("wheel", (e) => {

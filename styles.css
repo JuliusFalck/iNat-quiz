@@ -443,8 +443,10 @@
     position: relative;
     width: 100%;
     overflow: hidden;
-    touch-action: none; /* important for pointer events (prevents browser panning) */
     cursor: grab;
+    touch-action: none;   /* important: enables pointermove + pinch logic */
+    user-select: none;
+    -webkit-user-select: none;
 
 
 }
