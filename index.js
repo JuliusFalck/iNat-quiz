@@ -1382,7 +1382,7 @@ const body = document.body;
 const buttonFilters = document.getElementById("button-filters");
 const buttonQuiz = document.getElementById("button-quiz");
 
-const mq = window.matchMedia("(max-width: 768px)");
+const mq = window.matchMedia("(max-aspect-ratio: 1/1)");
 console.log("Initial media query match: " + mq.matches.toString());
 function closePanels() {
   body.classList.remove("show-filters", "show-settings");

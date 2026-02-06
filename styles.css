@@ -894,7 +894,7 @@
 /* Mobile toolbar buttons (hidden on desktop) */
 .mobile-toolbar{
   display: none;
-  position: absolute;
+  position: fixed;
   background-color: rgb(12, 12, 12);
   bottom: 0;
   height: 4vh;
@@ -951,13 +951,13 @@
     display: block;         /* overrides your 3-col grid */
     width: 100vw;
     top: 3vh;
-    height: calc(100vh - var(--header-h));
+    height: calc(100dvh - var(--header-h));
   }
 
   .main-view{
     width: 100vw;           /* overrides 50vw */
     top: 3vh;
-    height: calc(100vh - var(--header-h));
+    height: calc(100dvh - var(--header-h));
   }
 
   /* Panels become off-canvas overlays */
