@@ -1,20 +1,58 @@
 
-
+import { shareQuiz } from "./multi.js";
 
 // vars
+
+export let gameMode = "single"; // single or multi
+
+export function setGameMode(mode) {
+  gameMode = mode;
+}
+
 let c_index = 0;
 
-let c_opt = 0;
+export let c_opt = 0;
 
-let score = 0;
+export let score = 0;
+
+export function setScore(s) {
+  score = s;
+}
 
 let answered = false;
 
-let runs = 0;
+export let runs = 0;
+
+export function setRuns(r) {
+  runs = r;
+}
 
 let start = 0;
 
-let quizHistory = [];
+export let quizHistory = [];
+
+export function setQuizHistory(history) {
+  quizHistory = history;
+}
+
+export let quizHistoryOpponent = [];
+
+export function setQuizHistoryOpponent(history) {
+  quizHistoryOpponent = history;
+}
+
+export let quizAnswers = [];
+
+export function setQuizAnswers(answers) {
+  quizAnswers = answers;
+}
+
+
+export let quizAnswersOpponent = [];
+
+export function setQuizAnswersOpponent(answers) {
+  quizAnswersOpponent = answers;
+}
 
 let n_questions = 12;
 
@@ -28,21 +66,36 @@ let taxonData = {};
 
 let locationData = [];
 
-let quizData = [];
+export let quizData = [];
+
+export function setQuizData(data) {
+  quizData = data;
+}
+
+export let optionsData = [];
+
+export function setOptionsData(data) {
+  optionsData = data;
+}
 
 let ObsData = [];
 
-let optionData = [];
+let ObsData_photo = [];
+
+let ObsData_audio = [];
+
 
 let species_pool = [];
 
-let quizAnswers = [];
+
 
 let quizOptions = [];
 
 let language = "en";
 
+let obsMediaTypes = [];
 
+let max_searches = 10;
 
 let quizRank = "species";
 
@@ -52,6 +105,8 @@ const acceptedRanks = ["order", "family", "genus", "species"]
 let months = [true, true, true, true, true, true, true, true, true, true, true, true];
 
 let currentImage = null;
+
+let currentSpectrogram = null;
 
 let scale = 1;
 let minScale = 1;        // <-- will become "initial scale"
@@ -65,9 +120,20 @@ let startTx = 0, startTy = 0;
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
+let audioURL = "mistle.mp3";
 
+let media_photo = true;
 
+let media_audio = false;
 
+let species_pool_audio_ids = [];
+
+let photo_index = 0;
+let audio_index = 0;
+
+let taxon_pool = [];
+
+let spectrogramView = document.querySelector('.spectrogram-view');
 
 
 // Elements
@@ -97,6 +163,10 @@ let mainBody = document.querySelector('.main-body');
 let controlsContainer = document.querySelector('.controls-container');
 
 let imageView = document.querySelector('.image-view');
+
+let mediaView = document.querySelector('.media-view');
+
+let audioView = document.querySelector('.audio-view');
 
 let nextButton = document.querySelector('.next-button');
 
@@ -129,7 +199,22 @@ let languageDropdown = document.querySelector('.language-dropdown');
 
 let nQuestionsInput = document.querySelector('#n-questions-input');
 
+let photoMediaButton = document.querySelector('.media-button-selected');
+
+let audioMediaButton = document.querySelector('.media-button');
+
+
 let monthButtons = document.querySelectorAll('.month-button-selected');
+
+
+const scorePlayer = document.getElementById("scorePlayer");
+const scoreOpponent = document.getElementById("scoreOpponent");
+const questionCounter = document.querySelector('.question-counter');
+
+const playMenu = document.querySelector('.play-menu');
+const playButton = document.querySelector('.play-button');
+
+const quizContainer = document.querySelector('.quiz-container');
 
 // Event listeners
 
@@ -183,6 +268,15 @@ rankButtons.forEach((button, i) => {
 });
 
 
+photoMediaButton.addEventListener('click', event => {
+  toggleMedia(0);
+});
+
+audioMediaButton.addEventListener('click', event => {
+  toggleMedia(1);
+});
+
+
 monthButtons.forEach((button, i) => {
   button.addEventListener('click', event => {
     setMonth(i);
@@ -190,11 +284,13 @@ monthButtons.forEach((button, i) => {
 });
 
 makeQuizButton.addEventListener('click', event => {
-  make_quiz();
+  makeQuiz();
 });
 
-nextButton.addEventListener('click', event => {
-  next_question();
+nextButton.addEventListener('click', async event => {
+  if (gameMode == "single") {
+    await nextQuestion();
+  }
 });
 
 languageIndicator.addEventListener('click', event => {
@@ -215,30 +311,20 @@ nQuestionsInput.addEventListener('change', event => {
 
 
 
-// imageView.addEventListener("pointerdown", (e) => {
-//   dragging = true;
-//   imageView.setPointerCapture(e.pointerId);
-//   startX = e.clientX;
-//   startY = e.clientY;
-//   startTx = x;
-//   startTy = y;
-// });
+playButton.addEventListener('click', async event => {
+  playMenu.style.display = "none";
 
-// imageView.addEventListener("pointermove", (e) => {
-//   if (!dragging) return;
-//   x = startTx + (e.clientX - startX);
-//   y = startTy + (e.clientY - startY);
-//   clampPan();
-//   apply();
-// });
+  await nextQuestion();
 
-// imageView.addEventListener("pointerup", () => {
-//   dragging = false;
-// });
+  if (gameMode == "multi") {
+    shareQuiz();
+  }
+
+});
 
 
 // Recommended (in case CSS isn't set):
-imageView.style.touchAction = "none";
+// imageView.style.touchAction = "none";
 
 
 
@@ -419,21 +505,24 @@ window.addEventListener("resize", () => {
 
 
 function answer(a) {
-  if (!answered) {
-    runs += 1;
-    if (a == c_opt) {
-      score += 1;
+  nextButton.disabled = false;
+  if (gameMode == "single") {
+    if (!answered) {
+      runs += 1;
+      if (a == c_opt) {
+        score += 1;
+      }
 
+      quizHistory.push(a == c_opt);
+      quizAnswers.push(a);
+
+      scoreLabel.innerHTML = "Score: "
+        + score.toString() + "/" + runs.toString();
+      document.querySelector('#opt-' + a.toString()).style.backgroundColor = "red";
+      document.querySelector('#opt-' + c_opt.toString()).style.backgroundColor = "green";
     }
-
-    quizHistory.push(a == c_opt);
-    quizAnswers.push(a);
-
-    scoreLabel.innerHTML = "Score: "
-      + score.toString() + "/" + runs.toString();
     answered = true;
-    document.querySelector('#opt-' + a.toString()).style.backgroundColor = "red";
-    document.querySelector('#opt-' + c_opt.toString()).style.backgroundColor = "green";
+
   }
 
 }
@@ -614,7 +703,7 @@ function addLocation(locationID, locationName) {
   searchBoxLocation.value = "";
   clear_location_results();
 
-  
+
   console.log("Adding location ID: " + locationID.toString());
 
   locationData.push(locationID);
@@ -653,14 +742,14 @@ function clear_location_results() {
 
 // quiz stuff
 
-async function make_quiz() {
+async function makeQuiz() {
 
 
   buttonQuiz.disabled = false;
 
   loading("show");
 
-  if (mq.matches){
+  if (mq.matches) {
     showQuiz();
   }
 
@@ -673,12 +762,20 @@ async function make_quiz() {
   quizAnswers = [];
   quizOptions = [];
   quizData = [];
-  optionData = [];
+  optionsData = [];
   ObsData = [];
+  ObsData_photo = [];
+  ObsData_audio = [];
+  obsMediaTypes = [];
   species_pool = [];
+  let species_pool_audio = [];
+  species_pool_audio_ids = [];
+  taxon_pool = [];
   c_index = 0;
   score = 0;
   runs = 0;
+  photo_index = 0;
+  audio_index = 0;
 
 
 
@@ -700,6 +797,8 @@ async function make_quiz() {
     console.log(taxonData[taxonID]["iNatID"]);
     console.log("Months selected for query:");
     console.log(months.map((m, i) => m ? (i + 1).toString() : null).filter(m => m !== null).toString());
+
+    console.log("Media selected for query:");
 
     const params = new URLSearchParams({
       taxon_id: String(taxonData[taxonID].iNatID),
@@ -725,6 +824,9 @@ async function make_quiz() {
     data["results"].forEach((res, i) => {
       console.log("Adding species ID to pool: " + res["taxon"]["id"].toString());
       species_pool.push(res["taxon"]["id"]);
+      species_pool_audio.push(res["taxon"]["name"]);
+      species_pool_audio_ids.push(res["taxon"]["id"]);
+      taxon_pool.push(res["taxon"]);
     });
 
   }
@@ -738,23 +840,59 @@ async function make_quiz() {
   species_pool = Array.from(new Set(species_pool)); // remove duplicates
 
   // shuffle species pool
-  species_pool = species_pool.sort(() => Math.random() - 0.5);
-  console.log("Unique species pool size: " + species_pool.length.toString());
+  // get shuffle indices
+  let shuffle_indices = Array.from(Array(species_pool.length).keys());
+  shuffle_indices = shuffle_indices.sort(() => Math.random() - 0.5);
+
+  species_pool = shuffle_indices.map(i => species_pool[i]);
+  species_pool_audio = shuffle_indices.map(i => species_pool_audio[i]);
+  species_pool_audio_ids = shuffle_indices.map(i => species_pool_audio_ids[i]);
+
   species_pool = species_pool.slice(0, n_questions); // limit to n_questions species
+  species_pool_audio = species_pool_audio.slice(0, n_questions);
+  species_pool_audio_ids = species_pool_audio_ids.slice(0, n_questions);
+
+  let species_pool_photo = species_pool;
 
 
-  await get_observations();
+  // if both media types are selected, split the species pool into two to ensure
+  // enough media for each (will be further limited in get_observations functions
+  // if there aren't enough with both media types)
+  if (media_photo & media_audio) {
+    species_pool_photo = species_pool.slice(0, Math.floor(n_questions / 2));
+    species_pool_audio = species_pool_audio.slice(Math.floor(n_questions / 2), n_questions);
+    species_pool_audio_ids = species_pool_audio_ids.slice(Math.floor(n_questions / 2), n_questions);
+  }
+
+  if (media_photo) {
+    species_pool = species_pool_photo;
+    await get_observations();
+  }
+  if (media_audio) {
+    species_pool = species_pool_audio;
+    console.log(species_pool.length.toString() + " species in audio pool");
+    await get_observations_XC();
+  }
+
+
+  console.log("Observations loaded:");
+
+
+  ObsData = ObsData.concat(ObsData_photo);
+  ObsData = ObsData.concat(ObsData_audio);
 
 
   // randomize ObsData
   ObsData = ObsData.sort(() => Math.random() - 0.5);
   console.log(ObsData);
 
-  const seen = new Set(quizData.map(item => item.taxon.id));
+  const seen = new Set(quizData.map(item => item["taxon.id"]));
 
 
-  for (const obs of ObsData) {
-    const obsId = obs.taxon.id;
+  for (const [i, obs] of ObsData.entries()) {
+
+
+    const obsId = obs["taxon.id"];
 
     if (seen.has(obsId)) {
       continue; // Skip duplicate
@@ -765,16 +903,10 @@ async function make_quiz() {
 
 
     let start_offset = 2;
-    obs["answer"] = obs["taxon"];
+    obs["answer"] = taxon_pool.find(t => t.id === obs["taxon.id"]); // default answer is species, will be overwritten if quizRank is higher
     if (quizRank != "species") {
 
-
-      const obsTaxonId = obs.community_taxon?.id ?? obs.taxon?.id;
-
-      const taxonWithAncestors =
-        obs.identifications?.find(i => i.taxon?.id === obsTaxonId)?.taxon;
-
-      const ancestors = taxonWithAncestors?.ancestors; // may be undefined
+      const ancestors = obs["answer"].ancestors; // may be undefined
       ancestors.reverse();
       ancestors?.forEach((ancestor, i) => {
         console.log("Ancestor rank: " + ancestor["rank"]);
@@ -795,7 +927,20 @@ async function make_quiz() {
     // get higher rank data for options
     let higher_rank_data = await load_higher_rank_data(start_offset, obs);
 
-    optionData.push(higher_rank_data);
+    let contains_answer = false;
+    for (const higher_rank_obs of higher_rank_data) {
+      if (higher_rank_obs["id"] == obs["answer"]["id"]) {
+        contains_answer = true;
+        break;
+      }
+    }
+
+    if (!contains_answer) {
+      let random_index = Math.floor(Math.random() * higher_rank_data.length);
+      higher_rank_data[random_index] = obs["answer"];
+    }
+
+    optionsData.push(higher_rank_data);
 
 
 
@@ -804,37 +949,43 @@ async function make_quiz() {
   }
 
 
+  await buildQuiz();
+
+
+
+  playMenu.style.display = "block";
+
+
+}
+
+
+
+export async function buildQuiz() {
+
   // console.log(quizData);
   quizData.forEach((obs, i) => {
-    let new_image = document.createElement('img');
-    new_image.classList.add('image-view-item');
-    new_image.src = obs[0]["photos"][0]["url"].replace("square", "large");
-    console.log(new_image.src);
-    imageView.prepend(new_image);
-
-
-
-
+    console.log(obs);
+    console.log("==================================");
+    if (obs[0]["media_type"] == "photo") {
+      let new_image = document.createElement('img');
+      new_image.classList.add('image-view-item');
+      new_image.src = obs[0]["photos"][0]["url"].replace("square", "large");
+      console.log(new_image.src);
+      imageView.prepend(new_image);
+    }
+    else if (obs[0]["media_type"] == "audio") {
+      console.log(obs);
+      let new_spectrogram = document.createElement('img');
+      new_spectrogram.classList.add('spectrogram');
+      console.log(obs[0]["sono"]["full"]);
+      new_spectrogram.src = obs[0]["sono"]["full"];
+      spectrogramView.prepend(new_spectrogram);
+    }
   });
 
-  await update_language();
+  await updateLanguage();
 
   loading("hide");
-
-
-  imageView.style.display = "flex";
-  controlsContainer.style.display = "block";
-  obs_metadata_container.style.display = "flex";
-
-  scoreLabel = document.querySelector('.score-label');
-  scoreLabel.style.display = "block";
-  nextButton.innerHTML = "Next";
-
-  next_question();
-
-
-
-
 
 
 
@@ -843,11 +994,45 @@ async function make_quiz() {
 }
 
 
-function next_question() {
 
-  c_opt = 100;
+
+
+export async function nextQuestion() {
+
+  if (!answered) {
+    nextButton.disabled = true;
+  }
+
+
+  console.log("Current question index: " + c_index.toString());
+  console.log(quizData.length.toString() + " total questions.");
+
+  quizContainer.style.display = "block";
+  imageView.style.display = "flex";
+  spectrogramView.style.display = "flex";
+  controlsContainer.style.display = "block";
+  obs_metadata_container.style.display = "flex";
+
+  scoreLabel = document.querySelector('.score-label');
+  if (gameMode == "multi") {
+    scoreLabel.style.display = "none";
+    scorePlayer.style.display = "block";
+    scoreOpponent.style.display = "block";
+    questionCounter.style.display = "block";
+    if (c_index < quizData.length) {
+      questionCounter.textContent = `${c_index + 1}/${quizData.length}`;
+    }
+  }
+  else {
+    scoreLabel.style.display = "block";
+    scorePlayer.style.display = "none";
+    scoreOpponent.style.display = "none";
+    questionCounter.style.display = "none";
+  }
+  nextButton.innerHTML = "Next";
 
   if (c_index >= quizData.length) {
+    console.log("Quiz finished, showing summary.");
     summary();
     return;
   }
@@ -862,19 +1047,24 @@ function next_question() {
   let k = 0;
 
   console.log("Option data:");
-  console.log(optionData[c_index]);
+  console.log(optionsData[c_index]);
 
 
   while (options.length < 4) {
-    let r_option = optionData[c_index][k];
+    let r_option = optionsData[c_index][k];
     console.log("Random option:");
     console.log(r_option);
     options.push(r_option);
-    if (r_option["id"] == quizData[c_index][0]["id"]) {
+    console.log("current_data")
+    console.log(quizData[c_index]);
+    if (r_option["id"] == quizData[c_index][0]["answer"]["id"]) {
+      console.log("Found correct answer in options at index: " + k.toString());
       c_opt = options.length - 1;
     }
     k += 1;
   }
+
+  console.log("c_opt: " + c_opt.toString());
 
   quizOptions.push(options);
 
@@ -885,7 +1075,6 @@ function next_question() {
   // set option buttons
   optionButtons.forEach((button, j) => {
     button.innerHTML = "";
-    button.style.backgroundColor = "black";
     let new_scientific_name_span = document.createElement('span');
     let new_common_name_span = document.createElement('span');
     new_scientific_name_span.innerHTML = options[j]["name"];
@@ -895,33 +1084,30 @@ function next_question() {
   });
 
 
-  // set random correct option
-  if (c_opt === 100) {
-    c_opt = Math.floor(Math.random() * 4);
-
-
-    let new_scientific_name_span = document.createElement('span');
-    let new_common_name_span = document.createElement('span');
-
-    new_scientific_name_span.innerHTML = quizData[c_index][0]["answer"]["name"];
-    new_common_name_span.innerHTML = quizData[c_index][0]["answer"]["preferred_common_name"] || "";
-    optionButtons[c_opt].innerHTML = "";
-    optionButtons[c_opt].appendChild(new_scientific_name_span);
-    optionButtons[c_opt].appendChild(new_common_name_span);
-
-
+  if (quizData[c_index][0]["media_type"] == "photo") {
+    obs_metadata_container.innerHTML = "Observer: " + quizData[c_index][0]["user"]["name"] +
+      " | Location: " + quizData[c_index][0]["place_guess"] +
+      " | Date: " + new Date(quizData[c_index][0]["observed_on"]).toLocaleDateString();
   }
-
-  obs_metadata_container.innerHTML = "Observer: " + quizData[c_index][0]["user"]["name"] +
-    " | Location: " + quizData[c_index][0]["place_guess"] +
-    " | Date: " + new Date(quizData[c_index][0]["observed_on"]).toLocaleDateString();
-
-  setImage(c_index);
+  console.log(obsMediaTypes);
+  console.log(obsMediaTypes[c_index]);
+  if (quizData[c_index][0]["media_type"] == "photo") {
+    showImage(c_index);
+    photo_index += 1;
+  } else if (quizData[c_index][0]["media_type"] == "audio") {
+    showAudio(c_index);
+    audio_index += 1;
+  }
 
   c_index += 1;
 
+
+
   if (c_index >= quizData.length) {
     nextButton.innerHTML = "Finish";
+  }
+  else {
+    nextButton.innerHTML = "Next";
   }
 
 
@@ -931,10 +1117,12 @@ function next_question() {
 
 
 async function load_higher_rank_data(rank, obs) {
-  console.log(obs["taxon"]["id"].toString());
+  console.log(obs);
+  console.log(obs["taxon.id"].toString());
   console.log("Loading rank: " + rank.toString());
 
-  let higher_rank_id = obs["taxon"]["ancestor_ids"][obs["taxon"]["ancestor_ids"].length - rank];
+  let obs_taxon = taxon_pool.find(t => t.id === obs["taxon.id"])
+  let higher_rank_id = obs_taxon["ancestor_ids"][obs_taxon["ancestor_ids"].length - rank];
 
   console.log("Higher rank ID: " + higher_rank_id.toString());
 
@@ -1004,16 +1192,18 @@ async function load_higher_rank_data(rank, obs) {
 }
 
 
-function setImage(index) {
+function showImage(index) {
   console.log("Setting image to index: " + index.toString());
   for (let child of imageView.children) {
     child.style.opacity = '0';
   }
-  console.log(Array.from(imageView.children).reverse()[index]);
-  Array.from(imageView.children).reverse()[index].style.opacity = '1';
+  console.log(Array.from(imageView.children).reverse()[photo_index]);
+  Array.from(imageView.children).reverse()[photo_index].style.opacity = '1';
 
-  currentImage = Array.from(imageView.children).reverse()[index];
+  currentImage = Array.from(imageView.children).reverse()[photo_index];
 
+  imageView.style.display = "block";
+  audioView.style.display = "none";
   console.log("Current image set:");
   console.log(currentImage);
   // reset zoom and pan
@@ -1024,7 +1214,8 @@ function setImage(index) {
 
 
 
-function summary() {
+async function summary() {
+
   console.log("Quiz finished!");
   imageView.style.display = "none";
   controlsContainer.style.display = "none";
@@ -1038,120 +1229,231 @@ function summary() {
 
   summaryView.innerHTML = "";
 
-  for (let i = 0; i < n_questions; i++) {
-    let summary_item = document.createElement('div');
-    summary_item.classList.add('summary-item');
+  if (gameMode == "single") {
 
-    summaryView.appendChild(summary_item);
+    for (let i = 0; i < quizData.length; i++) {
+      let summary_item = document.createElement('div');
+      summary_item.classList.add('summary-item');
 
-    let question_number = document.createElement('div');
-    question_number.classList.add('question-number');
-    question_number.innerHTML = (i + 1).toString() + ".";
-    summary_item.appendChild(question_number);
+      summaryView.appendChild(summary_item);
 
-
-
-
-    let summary_image = document.createElement('img');
-    summary_image.classList.add('summary-image');
-    summary_image.src = quizData[i][0]["photos"][0]["url"].replace("square", "large");
-    summary_item.appendChild(summary_image);
-
-    summary_image.addEventListener('click', event => {
-      window.open("https://www.inaturalist.org/observations/" + quizData[i][0]["id"].toString(), '_blank');
-    });
+      let question_number = document.createElement('div');
+      question_number.classList.add('question-number');
+      question_number.innerHTML = (i + 1).toString() + ".";
+      summary_item.appendChild(question_number);
 
 
-    let summary_text_container = document.createElement('div');
-    summary_text_container.classList.add('summary_text_container');
-    summary_item.appendChild(summary_text_container);
+      if (quizData[i][0]["media_type"] == "photo") {
 
-    let summary_text_container_box = document.createElement('div');
-    summary_text_container_box.classList.add('summary-text-box-right');
-    summary_text_container.appendChild(summary_text_container_box);
+        let summary_image = document.createElement('img');
+        summary_image.classList.add('summary-image');
+        summary_image.src = quizData[i][0]["photos"][0]["url"].replace("square", "large");
+        summary_item.appendChild(summary_image);
 
-    let summary_text = document.createElement('div');
-    summary_text.classList.add('summary-text-right');
-    let new_scientific_name_span = document.createElement('span');
-    let new_common_name_span = document.createElement('span');
-    new_scientific_name_span.innerHTML = quizData[i][0]["answer"]["name"];
-    new_common_name_span.innerHTML = quizData[i][0]["answer"]["preferred_common_name"];
-    summary_text.appendChild(new_scientific_name_span);
-    summary_text.appendChild(new_common_name_span);
-    summary_text_container_box.appendChild(summary_text);
+        summary_image.addEventListener('click', event => {
+          window.open("https://www.inaturalist.org/observations/" + quizData[i][0]["id"].toString(), '_blank');
+        });
 
-    // links
-    let taxon_link_inat = document.createElement('img');
-    taxon_link_inat.classList.add('inat-link');
-    summary_text_container_box.appendChild(taxon_link_inat);
-    taxon_link_inat.addEventListener('click', event => {
-      window.open("https://www.inaturalist.org/taxa/" + quizData[i][0]["taxon"]["id"], '_blank');
-    });
-    taxon_link_inat.style.height = "3vh";
-    taxon_link_inat.style.width = "3vh";
+      }
 
-    let taxon_link_wiki = document.createElement('img');
-    taxon_link_wiki.classList.add('wiki-link');
-    summary_text_container_box.appendChild(taxon_link_wiki);
-    taxon_link_wiki.addEventListener('click', event => {
-      window.open("https://en.wikipedia.org/wiki/" + quizData[i][0]["taxon"]["name"], '_blank');
-    });
+      let summary_text_container = document.createElement('div');
+      summary_text_container.classList.add('summary_text_container');
+      summary_item.appendChild(summary_text_container);
 
-    let taxon_link_ecosia = document.createElement('img');
-    taxon_link_ecosia.classList.add('ecosia-link');
-    summary_text_container_box.appendChild(taxon_link_ecosia);
-    taxon_link_ecosia.addEventListener('click', event => {
-      window.open("https://www.ecosia.org/search?q=" + quizData[i][0]["taxon"]["name"], '_blank');
-    });
+      let summary_text_container_box_wrong = makeSummaryBox(i, "correct");
 
-
-    if (!quizHistory[i]) {
-      let summary_text_container_box_wrong = document.createElement('div');
-      summary_text_container_box_wrong.classList.add('summary-text-box-wrong');
       summary_text_container.appendChild(summary_text_container_box_wrong);
-      let summary_text_wrong = document.createElement('div');
-      summary_text_wrong.classList.add('summary-text-wrong');
-      let new_scientific_name_span = document.createElement('span');
-      let new_common_name_span = document.createElement('span');
-      new_scientific_name_span.innerHTML = quizOptions[i][quizAnswers[i]]["name"];
-      new_common_name_span.innerHTML = quizOptions[i][quizAnswers[i]]["preferred_common_name"];
-      summary_text_wrong.appendChild(new_scientific_name_span);
-      summary_text_wrong.appendChild(new_common_name_span);
-      summary_text_container_box_wrong.appendChild(summary_text_wrong);
 
-      // links
-      let taxon_link_inat = document.createElement('img');
-      taxon_link_inat.classList.add('inat-link');
-      summary_text_container_box_wrong.appendChild(taxon_link_inat);
-      taxon_link_inat.addEventListener('click', event => {
-        window.open("https://www.inaturalist.org/taxa/" + quizOptions[i][quizAnswers[i]]["id"], '_blank');
-      });
-      taxon_link_inat.style.height = "3vh";
-      taxon_link_inat.style.width = "3vh";
+      if (!quizHistory[i]) {
 
-      let taxon_link_wiki = document.createElement('img');
-      taxon_link_wiki.classList.add('wiki-link');
-      summary_text_container_box_wrong.appendChild(taxon_link_wiki);
-      taxon_link_wiki.addEventListener('click', event => {
-        window.open("https://en.wikipedia.org/wiki/" + quizOptions[i][quizAnswers[i]]["name"], '_blank');
-      });
+        let summary_text_container_box_wrong = makeSummaryBox(i, "wrong", quizAnswers);
 
-      let taxon_link_ecosia = document.createElement('img');
-      taxon_link_ecosia.classList.add('ecosia-link');
-      summary_text_container_box_wrong.appendChild(taxon_link_ecosia);
-      taxon_link_ecosia.addEventListener('click', event => {
-        window.open("https://www.ecosia.org/search?q=" + quizOptions[i][quizAnswers[i]]["name"], '_blank');
-      });
+        summary_text_container.appendChild(summary_text_container_box_wrong);
+
+
+
+      }
     }
-
-
-
   }
 
+  else if (gameMode == "multi") {
+    console.log("Quiz finished, showing multiplayer summary.");
+    console.log("quizData:");
+    console.log(quizData);
+    console.log("quizHistory:");
+    console.log(quizHistory);
+    console.log("quizHistoryOpponent:");
+    console.log(quizHistoryOpponent);
+    console.log("quizAnswers:");
+    console.log(quizAnswers);
+    console.log("quizAnswersOpponent:");
+    console.log(quizAnswersOpponent);
+
+
+    for (let i = 0; i < quizData.length; i++) {
+
+      console.log("Rendering summary for question " + (i).toString());
+
+      let summary_item = document.createElement('div');
+      summary_item.classList.add('summary-item');
+
+      summaryView.appendChild(summary_item);
+
+      let question_number = document.createElement('div');
+      question_number.classList.add('question-number');
+      question_number.innerHTML = (i + 1).toString() + ".";
+      summary_item.appendChild(question_number);
+
+
+      if (quizData[i][0]["media_type"] == "photo") {
+
+        let summary_image = document.createElement('img');
+        summary_image.classList.add('summary-image');
+        summary_image.src = quizData[i][0]["photos"][0]["url"].replace("square", "large");
+        summary_item.appendChild(summary_image);
+
+        summary_image.addEventListener('click', event => {
+          window.open("https://www.inaturalist.org/observations/" + quizData[i][0]["id"].toString(), '_blank');
+        });
+
+      }
+
+      let summary_text_container = document.createElement('div');
+      summary_text_container.classList.add('summary_text_container');
+      summary_item.appendChild(summary_text_container);
+
+      let summary_text_container_wrong = document.createElement('div');
+      summary_text_container_wrong.classList.add('summary_wrong_text_container');
+      summary_text_container.appendChild(summary_text_container_wrong);
+
+      let summary_text_container_box = makeSummaryBox(i, "correct");
+
+      summary_text_container_wrong.before(summary_text_container_box);
+
+      if (!quizHistory[i]) {
+
+        let summary_text_container_box_wrong = makeSummaryBox(i, "wrong", quizAnswers);
+
+        summary_text_container_wrong.appendChild(summary_text_container_box_wrong);
+
+        // sizing
+        if (quizHistoryOpponent[i]) {
+            summary_text_container_box_wrong.style.width = "50%";
+            summary_text_container_box_wrong.style.marginRight = "auto";  
+            summary_text_container_box_wrong.style.marginLeft = "0";   
+        }
+
+      }
+
+      if (!quizHistoryOpponent[i]) {
+        if (quizHistory[i] || quizOptions[i][quizAnswers[i]]["name"] != quizOptions[i][quizAnswersOpponent[i]]["name"]) {
+          let summary_text_container_box_wrong = makeSummaryBox(i, "wrong", quizAnswersOpponent);
+
+          summary_text_container_wrong.appendChild(summary_text_container_box_wrong);
+
+          // sizing
+          if (quizHistory[i]) {
+            summary_text_container_box_wrong.style.width = "50%";
+            summary_text_container_box_wrong.style.marginLeft = "auto";  
+            summary_text_container_box_wrong.style.marginRight = "0";      
+            
+          }
+
+        }
+
+      }
+    }
+  }
+}
+
+function makeSummaryBox(index, type, quizAnswers) {
+
+
+  let summary_text_container_box = document.createElement('div');
+  if (type == "correct") {
+    summary_text_container_box.classList.add('summary-text-box-right');
+  } else {
+    summary_text_container_box.classList.add('summary-text-box-wrong');
+  }
+
+  let summary_text = document.createElement('div');
+  if (type == "correct") {
+    summary_text.classList.add('summary-text-right');
+  } else {
+    summary_text.classList.add('summary-text-wrong');
+  }
+  let new_scientific_name_span = document.createElement('span');
+  let new_common_name_span = document.createElement('span');
+  if (type == "correct") {
+    new_scientific_name_span.innerHTML = quizData[index][0]["answer"]["name"];
+    new_common_name_span.innerHTML = quizData[index][0]["answer"]["preferred_common_name"];
+  } else {
+    new_scientific_name_span.innerHTML = quizOptions[index][quizAnswers[index]]["name"];
+    new_common_name_span.innerHTML = quizOptions[index][quizAnswers[index]]["preferred_common_name"];
+  }
+
+  summary_text.appendChild(new_scientific_name_span);
+  summary_text.appendChild(new_common_name_span);
+  summary_text_container_box.appendChild(summary_text);
+
+  // links
+  let links_container = document.createElement('div');
+  links_container.classList.add('links-container');
+  summary_text_container_box.appendChild(links_container);
+
+  let taxon_link_inat = document.createElement('img');
+  taxon_link_inat.classList.add('inat-link');
+  links_container.appendChild(taxon_link_inat);
+  if (type == "correct") {
+    taxon_link_inat.addEventListener('click', event => {
+      window.open("https://www.inaturalist.org/taxa/" + quizData[index][0]["answer"]["id"], '_blank');
+    });
+  } else {
+    taxon_link_inat.addEventListener('click', event => {
+      window.open("https://www.inaturalist.org/taxa/" + quizOptions[index][quizAnswers[index]]["id"], '_blank');
+    });
+  }
+
+  let taxon_link_wiki = document.createElement('img');
+  taxon_link_wiki.classList.add('wiki-link');
+  links_container.appendChild(taxon_link_wiki);
+  if (type == "correct") {
+    taxon_link_wiki.addEventListener('click', event => {
+      window.open("https://en.wikipedia.org/wiki/" + quizData[index][0]["answer"]["name"], '_blank');
+    });
+  } else {
+    taxon_link_wiki.addEventListener('click', event => {
+      window.open("https://en.wikipedia.org/wiki/" + quizOptions[index][quizAnswers[index]]["name"], '_blank');
+    });
+  }
+
+  let taxon_link_ecosia = document.createElement('img');
+  taxon_link_ecosia.classList.add('ecosia-link');
+  links_container.appendChild(taxon_link_ecosia);
+  if (type == "correct") {
+    taxon_link_ecosia.addEventListener('click', event => {
+      window.open("https://www.ecosia.org/search?q=" + quizData[index][0]["taxon"]["name"], '_blank');
+    });
+  } else {
+    taxon_link_ecosia.addEventListener('click', event => {
+      window.open("https://www.ecosia.org/search?q=" + quizOptions[index][quizAnswers[index]]["name"], '_blank');
+    });
+  }
+
+  return summary_text_container_box;
 }
 
 
-async function get_observations() {
+async function get_observations(page_number = 1) {
+
+  if (page_number > max_searches) {
+    console.log("Max searches reached, moving on.");
+    return;
+  }
+
+  // loop through true media types and fetch observations for each until we have enough observations to fill the quiz
+
+
 
   const params = new URLSearchParams({
     captive: "false",
@@ -1161,31 +1463,82 @@ async function get_observations() {
     verifiable: "true",
     rank: "species",
     taxon_id: species_pool.toString(),
-    per_page: "600",
+    per_page: "300",
     quality_grade: "research",
     order: "desc",
     order_by: "random",
     only_id: "false",
-    locale: language
+    locale: language,
+    page: page_number.toString()
   });
+
+
+
+
 
   let inat_response = await fetch("https://api.inaturalist.org/v1/observations?" + params.toString());
   const inat_json = await inat_response.json();
 
+
   let results = inat_json["results"];
-  // shuffle results
+
+
+
+  let pool_size_before = species_pool.length;
   results = results.sort(() => Math.random() - 0.5);
   for (const obs of results) {
     console.log("Observation taxon ID: " + obs["taxon"]["id"].toString());
     if (species_pool.includes(obs["taxon"]["id"])) {
-      ObsData.push(obs);
+      console.log("adding");
+      obs["media_type"] = "photo";
+      obs["taxon.id"] = obs["taxon"]["id"];
+      ObsData_photo.push(obs);
       species_pool = species_pool.filter(id => id !== obs["taxon"]["id"]);
     }
   }
-  if (species_pool.length > 0) {
-    await get_observations();
+
+  let delta_pool = pool_size_before - species_pool.length;
+  console.log(species_pool.length.toString() + " species left in pool after fetching observations.");
+
+
+  if (delta_pool > 0) {
+    await get_observations(page_number + 1);
   }
   return;
+}
+
+async function get_observations_XC() {
+
+  const key = 'be0e6193ffefe2253d001494bd63aaa64133ff6d';
+
+
+  for (const [i, species] of species_pool.entries()) {
+    const url =
+      `https://xeno-canto.org/api/3/recordings?query=${encodeURIComponent(`sp:"${species}"`)}&key=${encodeURIComponent(key)}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    let recordings = data.recordings;
+    recordings = recordings.sort(() => Math.random() - 0.5); // shuffle recordings
+
+    console.log("Xeno-Canto data:");
+    console.log(data);
+
+    if (recordings.length == 0) {
+      console.log("No recordings found for species: " + species);
+      continue;
+    }
+
+    recordings[0]["taxon.id"] = species_pool_audio_ids[i];
+    recordings[0]["media_type"] = "audio";
+    ObsData_audio.push(recordings[0]);
+
+
+
+
+
+  }
 }
 
 
@@ -1301,11 +1654,11 @@ function search_language() {
 async function select_language(lang) {
   console.log("Selected language: " + lang);
   language = lang;
-  await update_language();
+  await updateLanguage();
 }
 
 
-async function update_language() {
+async function updateLanguage() {
   // implement later
 
   // update quizData with preferred common names in selected language
@@ -1333,10 +1686,10 @@ async function update_language() {
 
   ids = [];
 
-  // update optionData with preferred common names in selected language
-  for (let i = 0; i < optionData.length; i++) {
-    for (let j = 0; j < optionData[i].length; j++) {
-      ids.push(optionData[i][j]["id"]);
+  // update optionsData with preferred common names in selected language
+  for (let i = 0; i < optionsData.length; i++) {
+    for (let j = 0; j < optionsData[i].length; j++) {
+      ids.push(optionsData[i][j]["id"]);
     }
 
   }
@@ -1351,12 +1704,12 @@ async function update_language() {
     console.log(results);
 
     ids.forEach((id) => {
-      for (let i = 0; i < optionData.length; i++) {
-        for (let k = 0; k < optionData[i].length; k++) {
-          if (optionData[i][k]["id"] == id) {
+      for (let i = 0; i < optionsData.length; i++) {
+        for (let k = 0; k < optionsData[i].length; k++) {
+          if (optionsData[i][k]["id"] == id) {
             let res = results.find(r => r.id === id);
             if (res) {
-              optionData[i][k]["preferred_common_name"] = res["preferred_common_name"];
+              optionsData[i][k]["preferred_common_name"] = res["preferred_common_name"];
             }
           }
         }
@@ -1366,13 +1719,20 @@ async function update_language() {
   }
 
   if (c_index > 0) {
-    c_index -= 1;
+    // set option buttons
+    c_index -= 1; // adjust index to match optionsData
+    if (quizData[c_index][0]["media_type"] == "photo") {
+      photo_index -= 1; // adjust index to match imageView children
+    }
+    else if (quizData[c_index][0]["media_type"] == "audio") {
+      audio_index -= 1; // adjust index to match spectrogramView children
+    }
+    await nextQuestion(); // refresh current question to update option names
 
-    next_question(); // refresh current question
   }
 
   if (summaryView.style.display == "block") {
-    summary(); // refresh summary
+    await summary(); // refresh summary
   }
 
 }
@@ -1494,6 +1854,35 @@ function whenImageReady(img, fn) {
 }
 
 
+function toggleMedia(i) {
+  let button = photoMediaButton;
+  if (i == 1) {
+    button = audioMediaButton;
+  }
+  if (!button.classList.contains('media-button-selected')) {
+    button.classList.remove('media-button');
+    button.classList.add('media-button-selected');
+  }
+  else {
+    button.classList.remove('media-button-selected');
+    button.classList.add('media-button');
+  }
+  if (i == 0) {
+    media_photo = !media_photo;
+    console.log("Media photo set to: " + media_photo.toString());
+  }
+  else if (i == 1) {
+    media_audio = !media_audio;
+    console.log("Media audio set to: " + media_audio.toString());
+  }
+}
+
+
+
+
+
+
+
 function setMonth(i) {
   console.log("Toggling month: " + (i + 1).toString());
   if (!months[i]) {
@@ -1514,7 +1903,7 @@ function setMonth(i) {
 // Initial setup
 setRank(3);
 
-function toggleMakeQuizButton(){
+function toggleMakeQuizButton() {
   console.log("Toggling Make Quiz button. Taxon data count: " + Object.keys(taxonData).length.toString() + ", Location data count: " + locationData.length.toString());
   if (Object.keys(taxonData).length > 0 && locationData.length > 0) {
     makeQuizButton.disabled = false;
@@ -1530,6 +1919,7 @@ const body = document.body;
 
 const buttonFilters = document.getElementById("button-filters");
 const buttonQuiz = document.getElementById("button-quiz");
+const buttonMultiplayer = document.getElementById("button-multiplayer");
 
 const mq = window.matchMedia("(max-aspect-ratio: 1/1)");
 console.log("Initial media query match: " + mq.matches.toString());
@@ -1540,9 +1930,12 @@ function closePanels() {
 function showFilters() {
   body.classList.add("show-filters");
   body.classList.remove("show-quiz");
+  body.classList.remove("show-multiplayer");
   buttonFilters.classList.add("toolbar-btn-selected");
   buttonQuiz.classList.remove("toolbar-btn-selected");
   buttonQuiz.classList.add("toolbar-btn");
+  buttonMultiplayer.classList.remove("toolbar-btn-selected");
+  buttonMultiplayer.classList.add("toolbar-btn");
   buttonFilters.classList.remove("toolbar-btn");
 
 }
@@ -1550,14 +1943,31 @@ function showFilters() {
 function showQuiz() {
   body.classList.add("show-quiz");
   body.classList.remove("show-filters");
+  body.classList.remove("show-multiplayer");
   buttonQuiz.classList.add("toolbar-btn-selected");
   buttonFilters.classList.remove("toolbar-btn-selected");
   buttonFilters.classList.add("toolbar-btn");
+  buttonMultiplayer.classList.remove("toolbar-btn-selected");
+  buttonMultiplayer.classList.add("toolbar-btn");
   buttonQuiz.classList.remove("toolbar-btn");
+}
+
+
+function showMultiplayer() {
+  body.classList.add("show-quiz");
+  body.classList.add("show-multiplayer");
+  body.classList.remove("show-filters");
+  buttonMultiplayer.classList.add("toolbar-btn-selected");
+  buttonFilters.classList.remove("toolbar-btn-selected");
+  buttonFilters.classList.add("toolbar-btn");
+  buttonQuiz.classList.remove("toolbar-btn-selected");
+  buttonQuiz.classList.add("toolbar-btn");
+  buttonMultiplayer.classList.remove("toolbar-btn");
 }
 
 buttonFilters?.addEventListener("click", showFilters);
 buttonQuiz?.addEventListener("click", showQuiz);
+buttonMultiplayer?.addEventListener("click", showMultiplayer);
 
 
 // close panels when switching to desktop
@@ -1569,3 +1979,238 @@ mq.addEventListener("change", (e) => {
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closePanels();
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Spectrogram viewer logic
+
+const audio = document.getElementById("audio");
+const viewer = document.getElementById("viewer");
+const specWrap = document.getElementById("specWrap");
+const playhead = document.getElementById("playhead");
+const clickLine = document.getElementById("clickLine");
+
+let zoom = 1;
+let activeSpectrogramId = null;
+const spectrograms = new Map();
+
+let rafId = null;
+let isScrubbing = false;
+
+
+
+function getBaseImageWidth() {
+  if (!currentSpectrogram) return 1;
+  return currentSpectrogram.naturalWidth || 1;
+}
+
+function getScaledWidth() {
+  return getBaseImageWidth() * zoom;
+}
+
+function syncActiveSpectrogramLayout() {
+
+  const width = getScaledWidth();
+
+  currentSpectrogram.style.width = `${width}px`;
+  spectrogramView.style.width = `${width}px`;
+  specWrap.style.width = `${width}px`;
+}
+
+function applyZoom(newZoom, anchorClientX = null) {
+  const oldWidth = getScaledWidth();
+  const oldScrollLeft = viewer.scrollLeft;
+
+  if (anchorClientX == null) {
+    anchorClientX = viewer.clientWidth / 2;
+  }
+
+  const anchorContentX = oldScrollLeft + anchorClientX;
+
+  zoom = Math.max(1, Math.min(8, newZoom));
+
+  syncActiveSpectrogramLayout();
+
+  const newWidth = getScaledWidth();
+  const ratio = newWidth / oldWidth;
+
+  viewer.scrollLeft = anchorContentX * ratio - anchorClientX;
+
+  updatePlayhead();
+}
+
+function timeToX(time) {
+  const duration = audio.duration;
+  if (!Number.isFinite(duration) || duration <= 0) return 0;
+  return (time / duration) * getScaledWidth();
+}
+
+function xToTime(x) {
+  const duration = audio.duration;
+  if (!Number.isFinite(duration) || duration <= 0) return 0;
+
+  const width = getScaledWidth();
+  const clampedX = Math.max(0, Math.min(x, width));
+
+  return (clampedX / width) * duration;
+}
+
+function updatePlayhead() {
+  const x = timeToX(audio.currentTime);
+  playhead.style.left = `${x}px`;
+}
+
+function autoScrollToPlayheadSmooth() {
+  const x = timeToX(audio.currentTime);
+
+  // keep playhead around 35% from the left edge
+  const targetScrollLeft = Math.max(0, x - viewer.clientWidth * 0.35);
+
+  // ease toward target instead of jumping
+  const current = viewer.scrollLeft;
+  const diff = targetScrollLeft - current;
+
+  // smaller = smoother but slower, bigger = snappier
+  viewer.scrollLeft = current + diff * 0.12;
+}
+function animationLoop() {
+  updatePlayhead();
+  autoScrollToPlayheadSmooth();
+
+  if (!audio.paused && !audio.ended) {
+    rafId = requestAnimationFrame(animationLoop);
+  } else {
+    rafId = null;
+  }
+}
+
+function startAnimation() {
+  if (rafId == null) {
+    rafId = requestAnimationFrame(animationLoop);
+  }
+}
+
+function stopAnimation() {
+  if (rafId != null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+}
+
+function seekFromPointerEvent(e) {
+  const rect = spectrogramView.getBoundingClientRect();
+
+  // x relative to the full visible spectrogram content element
+  const x = e.clientX - rect.left;
+
+  audio.currentTime = xToTime(x);
+  updatePlayhead();
+  autoScrollToPlayheadSmooth();
+}
+
+spectrogramView.addEventListener("pointerdown", (e) => {
+  console.log("Spectrogram pointer down at: " + e.clientX.toString() + ", " + e.clientY.toString());
+  isScrubbing = true;
+  seekFromPointerEvent(e);
+});
+
+window.addEventListener("pointermove", (e) => {
+  const rect = spectrogramView.getBoundingClientRect();
+  const insideX = e.clientX >= rect.left && e.clientX <= rect.right;
+
+  if (insideX) {
+    clickLine.style.display = "block";
+    clickLine.style.left = `${e.clientX - rect.left}px`;
+  } else {
+    clickLine.style.display = "none";
+  }
+
+  if (isScrubbing) {
+    seekFromPointerEvent(e);
+  }
+});
+
+window.addEventListener("pointerup", () => {
+  isScrubbing = false;
+});
+
+spectrogramView.addEventListener("dblclick", (e) => {
+  console.log("Spectrogram double-click at: " + e.clientX.toString() + ", " + e.clientY.toString());
+  e.preventDefault();
+  seekFromPointerEvent(e);
+
+  if (audio.paused) audio.play();
+  else audio.pause();
+});
+
+spectrogramView.addEventListener("mouseleave", () => {
+  clickLine.style.display = "none";
+});
+
+audio.addEventListener("play", startAnimation);
+audio.addEventListener("pause", stopAnimation);
+audio.addEventListener("ended", stopAnimation);
+
+audio.addEventListener("loadedmetadata", () => {
+  updatePlayhead();
+});
+
+audio.addEventListener("seeked", () => {
+  updatePlayhead();
+});
+
+audio.addEventListener("timeupdate", () => {
+  // backup sync only; not used for smooth animation
+  updatePlayhead();
+});
+
+// optional zoom with ctrl/cmd + wheel
+viewer.addEventListener("wheel", (e) => {
+  if (!(e.ctrlKey || e.metaKey)) return;
+  e.preventDefault();
+
+  const rect = viewer.getBoundingClientRect();
+  const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+  applyZoom(zoom * factor, e.clientX - rect.left);
+}, { passive: false });
+
+
+async function showAudio(index) {
+
+  console.log("Setting audio to index: " + index.toString());
+  for (let child of spectrogramView.children) {
+    child.style.opacity = '0';
+  }
+  currentSpectrogram = Array.from(spectrogramView.children).reverse()[audio_index];
+  currentSpectrogram.style.opacity = '1';
+  currentSpectrogram.style.display = "block";
+
+  console.log("Current spectrogram set:");
+  console.log(currentSpectrogram);
+  // reset zoom and pan
+  // wait a frame to ensure the image is fully loaded
+
+  // whenImageReady(currentSpectrogram, initView);
+  console.log("Showing audio for question index: " + index.toString());
+  console.log(quizData[index][0]["file"]);
+  audio.src = quizData[index][0]["file"];
+
+  audioView.style.display = "block";
+  imageView.style.display = "none";
+
+  await audio.play();
+  syncActiveSpectrogramLayout();
+  viewer.scrollLeft = 0;
+  updatePlayhead();
+  console.log("Audio playback started.");
+}

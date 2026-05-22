@@ -17,12 +17,22 @@
     <div class="mobile-toolbar">
         <button type="button" id="button-filters" class="toolbar-btn-selected">Filters</button>
         <button type="button" disabled id="button-quiz" class="toolbar-btn">Quiz</button>
+        <button type="button" id="button-multiplayer" class="toolbar-btn">Multiplayer</button>
     </div>
     <div class="content-container">
 
 
 
         <div class="filter-menu">
+            <div class="media-menu">
+                <div class="filter-header">
+                    Media Type
+                </div>
+                <div class="media-options">
+                    <button class="media-button-selected" id="media-photo">Photo</button>
+                    <button class="media-button" id="media-sound">Sound</button>
+                </div>
+            </div>
             <div class="taxa-menu">
                 <div class="filter-header">
                     Taxa
@@ -133,45 +143,122 @@
                     Loading
                 </div>
             </div>
-            <div class="image-view">
-                <!-- Images will be dynamically added here -->
-
+            <div class="play-menu">
+                <div class="quiz-info">Quiz is ready</div>
+                <button class="play-button">
+                    Play Quiz
+                </button>
             </div>
-            <div class="observation-metadata-container">
-                <!-- Observation metadata will be dynamically added here -->
-            </div>
 
-            <div class="controls-container">
-                <div class="options">
-                    <button id="opt-0" class="option-button">
-                        Bird
-                    </button>
-                    <button id="opt-1" class="option-button">
-                        Bird
-                    </button>
-                    <button id="opt-2" class="option-button">
-                        Bird
-                    </button>
-                    <button id="opt-3" class="option-button">
-                        Bird
-                    </button>
+
+            <!-- <div class="media-view"> -->
+            <div class="quiz-container">
+                <div class="audio-view">
+                    <div class="controls">
+                        <button id="playPauseBtn">Play</button>
+
+                        <label>
+                            Zoom
+                            <input id="zoomSlider" type="range" min="1" max="8" step="0.1" value="1">
+                        </label>
+
+                        <div class="time-readout" id="timeReadout">0:00 / 0:00</div>
+                        <div class="status" id="status">Ready</div>
+                    </div>
+
+                    <audio id="audio" controls preload="metadata">
+                        <source src="mistle.mp3" type="audio/mpeg">
+                        Your browser does not support audio.
+                    </audio>
+
+                    <div class="viewer" id="viewer">
+                        <div class="spectrogram-wrap" id="specWrap">
+                            <div class="spectrogram-view">
+                            </div>
+                            <div id="playhead" class="playhead"></div>
+                            <div id="clickLine" class="click-line"></div>
+                        </div>
+                    </div>
+
+                    <div class="hint">
+                        Click = jump. Double-click = play/pause. Use the zoom slider or Ctrl/Cmd + wheel to zoom.
+                    </div>
+
+
+                </div>
+                <div class="image-view"></div>
+
+
+                <!-- </div> -->
+                <div class="observation-metadata-container">
+                    <!-- Observation metadata will be dynamically added here -->
                 </div>
 
-                <div class="center-box">
-                    <button class="next-button">
-                        <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span> Next
-                    </button>
-                </div>
+                <div class="controls-container">
+                    <div class="options">
+                        <button id="opt-0" class="option-button">
+                            Bird
+                        </button>
+                        <button id="opt-1" class="option-button">
+                            Bird
+                        </button>
+                        <button id="opt-2" class="option-button">
+                            Bird
+                        </button>
+                        <button id="opt-3" class="option-button">
+                            Bird
+                        </button>
+                    </div>
 
-            </div>
-            <div class="summary-view">
-            </div>
-            <div class="score-label">
-                Score:
+                    <div class="center-box">
+                        <button class="next-button">
+                            <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span> Next
+                        </button>
+                    </div>
+
+                </div>
+                <div class="summary-view">
+                </div>
+                <div class="status-container">
+                    <div class="score-label">
+                        Score:
+                    </div>
+                    <div class="score-label" id="scorePlayer">0</div>
+                    <div class="question-counter">1/12</div>
+                    <div class="score-label" id="scoreOpponent">0</div>
+
+                </div>
             </div>
         </div>
 
         <div class="settings-menu">
+            <div class="filter-header">
+                Multiplayer
+            </div>
+
+            <div class="lobby">
+                <div class="game-title">Lobby</div>
+                <div class="player-list">
+                    
+                </div>
+            </div>
+            <div class="multiplayer-menu">
+
+                <div class="tag">Name</div>
+                <input type="text" , id="multiplayer-name-input" class="multiplayer-input"
+                    placeholder="Enter your name">
+
+                <div class="tag">Game ID</div>
+                <input type="text" , id="multiplayer-id-input" class="multiplayer-input" placeholder="Enter game id">
+                </textarea>
+
+                <button class="multiplayer-button" id="host-multiplayer">Host Game</button>
+
+                <button class="multiplayer-button" id="join-multiplayer">Join Game</button>
+
+                <button class="leave-game-button" id="leave-multiplayer">Leave Game</button>
+            </div>
+
 
         </div>
     </div>
@@ -192,6 +279,7 @@
     </div>
     </div>
     <script type="module" src="index.js"></script>
+    <script type="module" src="multi.js"></script>
 </body>
 
 </html>
