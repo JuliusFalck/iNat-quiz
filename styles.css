@@ -1133,6 +1133,17 @@ body {
 }
 
 
+.audio-view {
+    display: none;
+    height: 60dvh;
+    width: 100dvw;
+    justify-content: center;
+    align-items: center;
+    background-color: black;
+    position: relative;
+}
+
+
 .summary-text-wrong {
 
     text-align: left;
@@ -1173,7 +1184,16 @@ body {
     top: 1vh;
 }
 
-
+.viewer {
+    position: relative;
+    width: 100%;
+    max-width: 1100px;
+    height: 50dvh;
+    overflow: auto;
+    border: 1px solid #444;
+    background: #000;
+    user-select: none;
+}
 
 
 .links-container {
@@ -1558,7 +1578,7 @@ body {
 
     .spectrogram-view {
         color: white;
-        height: 60vh;
+        height: 50dvh;
         width: 50vw;
         justify-content: center;
         position: relative;
@@ -1723,8 +1743,8 @@ body {
     }
 
     .summary-text-box-wrong {
-        max-width: 45dvw;
-        width: 45dvw;
+        max-width: 90dvw;
+        width: 90dvw;
         box-sizing: border-box;
     }
 

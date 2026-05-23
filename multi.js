@@ -128,19 +128,24 @@ leaveGameButton.addEventListener("click", () => {
 
 
 nextButton.addEventListener("click", async () => {
-  const gameId = multiplayerGameIdInput.value;
-  const gameRef = doc(db, "games", gameId);
+  console.log(gameMode);
+  if (gameMode !== "multi") {
+    const gameId = multiplayerGameIdInput.value;
+    const gameRef = doc(db, "games", gameId);
 
-  if (currentRole === "host") {
-    await updateDoc(gameRef, {
-      "players.host.next": true
-    });
-  } else {
-    await updateDoc(gameRef, {
-      "players.guest.next": true
-    });
+    if (currentRole === "host") {
+      await updateDoc(gameRef, {
+        "players.host.next": true
+      });
+    } else {
+      await updateDoc(gameRef, {
+        "players.guest.next": true
+      });
+    }
   }
-
+  else {
+    return;
+  }
 
 });
 

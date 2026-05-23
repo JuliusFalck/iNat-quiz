@@ -473,6 +473,9 @@ imageView.addEventListener("lostpointercapture", endPointer);
 
 // Wheel zoom (zooms around cursor position)
 imageView.addEventListener("wheel", (e) => {
+
+  if (imageView.style.display == "none") return;
+
   e.preventDefault();
 
   const rect = imageView.getBoundingClientRect();
@@ -784,6 +787,7 @@ async function makeQuiz() {
   summaryView.style.display = "none";
   scoreLabel.style.display = "none";
   imageView.innerHTML = "";
+  spectrogramView.innerHTML = "";
 
 
   // rest score label
@@ -1081,6 +1085,8 @@ export async function nextQuestion() {
     new_common_name_span.innerHTML = options[j]["preferred_common_name"];
     button.appendChild(new_scientific_name_span);
     button.appendChild(new_common_name_span);
+    button.style.backgroundColor = "black";
+    button.style.border = "0.2vh solid white";
   });
 
 
@@ -1095,7 +1101,7 @@ export async function nextQuestion() {
     showImage(c_index);
     photo_index += 1;
   } else if (quizData[c_index][0]["media_type"] == "audio") {
-    showAudio(c_index);
+    await showAudio(c_index);
     audio_index += 1;
   }
 
@@ -1218,9 +1224,13 @@ async function summary() {
 
   console.log("Quiz finished!");
   imageView.style.display = "none";
+  audioView.style.display = "none";
   controlsContainer.style.display = "none";
 
   obs_metadata_container.style.display = "none";
+
+  audio.pause();
+  audio.currentTime = 0;
 
   summaryView.style.display = "block";
 
@@ -1338,9 +1348,9 @@ async function summary() {
 
         // sizing
         if (quizHistoryOpponent[i]) {
-            summary_text_container_box_wrong.style.width = "50%";
-            summary_text_container_box_wrong.style.marginRight = "auto";  
-            summary_text_container_box_wrong.style.marginLeft = "0";   
+          summary_text_container_box_wrong.style.width = "50%";
+          summary_text_container_box_wrong.style.marginRight = "auto";
+          summary_text_container_box_wrong.style.marginLeft = "0";
         }
 
       }
@@ -1354,9 +1364,9 @@ async function summary() {
           // sizing
           if (quizHistory[i]) {
             summary_text_container_box_wrong.style.width = "50%";
-            summary_text_container_box_wrong.style.marginLeft = "auto";  
-            summary_text_container_box_wrong.style.marginRight = "0";      
-            
+            summary_text_container_box_wrong.style.marginLeft = "auto";
+            summary_text_container_box_wrong.style.marginRight = "0";
+
           }
 
         }
@@ -1530,9 +1540,18 @@ async function get_observations_XC() {
       continue;
     }
 
-    recordings[0]["taxon.id"] = species_pool_audio_ids[i];
-    recordings[0]["media_type"] = "audio";
-    ObsData_audio.push(recordings[0]);
+    for (const recording of recordings) {
+      console.log("Recording species: " + recording.species);
+      console.log("Recording ID: " + recording.id);
+      if (recording["sono"]["full"] != undefined) {
+        recording["taxon.id"] = species_pool_audio_ids[i];
+        recording["media_type"] = "audio";
+        ObsData_audio.push(recording);
+        break; // only take the first recording with a spectrogram
+      }
+    }
+
+    
 
 
 
@@ -2007,15 +2026,21 @@ const spectrograms = new Map();
 let rafId = null;
 let isScrubbing = false;
 
+let currentSpectrogram_width = 0;
 
+async function updateSpectrogramWidth() {
+  // get the natural width of the spectrogram image for the current audio
+  if (currentSpectrogram.naturalWidth) currentSpectrogram_width = currentSpectrogram.naturalWidth;
 
-function getBaseImageWidth() {
-  if (!currentSpectrogram) return 1;
-  return currentSpectrogram.naturalWidth || 1;
+  // if not loaded yet, wait for it to load
+  await new Promise((resolve) => {
+    whenImageReady(currentSpectrogram, resolve);
+  });
+  currentSpectrogram_width = currentSpectrogram.naturalWidth;
 }
 
 function getScaledWidth() {
-  return getBaseImageWidth() * zoom;
+  return currentSpectrogram_width * zoom;
 }
 
 function syncActiveSpectrogramLayout() {
@@ -2083,6 +2108,7 @@ function autoScrollToPlayheadSmooth() {
   // smaller = smoother but slower, bigger = snappier
   viewer.scrollLeft = current + diff * 0.12;
 }
+
 function animationLoop() {
   updatePlayhead();
   autoScrollToPlayheadSmooth();
@@ -2107,55 +2133,91 @@ function stopAnimation() {
   }
 }
 
-function seekFromPointerEvent(e) {
-  const rect = spectrogramView.getBoundingClientRect();
 
-  // x relative to the full visible spectrogram content element
-  const x = e.clientX - rect.left;
 
-  audio.currentTime = xToTime(x);
-  updatePlayhead();
-  autoScrollToPlayheadSmooth();
+function waitForLoadedMetadata(audio) {
+  if (audio.readyState >= 1 && Number.isFinite(audio.duration)) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    audio.addEventListener("loadedmetadata", resolve, { once: true });
+  });
 }
 
-spectrogramView.addEventListener("pointerdown", (e) => {
-  console.log("Spectrogram pointer down at: " + e.clientX.toString() + ", " + e.clientY.toString());
-  isScrubbing = true;
-  seekFromPointerEvent(e);
-});
+// function seekFromPointerEvent(e) {
 
-window.addEventListener("pointermove", (e) => {
-  const rect = spectrogramView.getBoundingClientRect();
-  const insideX = e.clientX >= rect.left && e.clientX <= rect.right;
+//   const rect = spectrogramView.getBoundingClientRect();
 
-  if (insideX) {
-    clickLine.style.display = "block";
-    clickLine.style.left = `${e.clientX - rect.left}px`;
-  } else {
-    clickLine.style.display = "none";
-  }
+//   // If spectrogramView is the full scrolling content element:
+//   const x = e.clientX - rect.left + viewer.scrollLeft;
 
-  if (isScrubbing) {
-    seekFromPointerEvent(e);
-  }
-});
+//   let time = xToTime(x);
 
-window.addEventListener("pointerup", () => {
-  isScrubbing = false;
-});
+//   console.log({
+//     requestedX: x,
+//     requestedTime: time,
+//     duration: audio.duration,
+//     readyState: audio.readyState,
+//     seekableLength: audio.seekable.length,
+//     currentBefore: audio.currentTime
+//   });
 
-spectrogramView.addEventListener("dblclick", (e) => {
-  console.log("Spectrogram double-click at: " + e.clientX.toString() + ", " + e.clientY.toString());
-  e.preventDefault();
-  seekFromPointerEvent(e);
+//   // Clamp to valid audio duration
+//   time = Math.max(0, Math.min(time, audio.duration));
 
+//   // Also clamp to browser seekable range if available
+//   if (audio.seekable.length > 0) {
+//     const start = audio.seekable.start(0);
+//     const end = audio.seekable.end(audio.seekable.length - 1);
+//     time = Math.max(start, Math.min(time, end));
+//   }
+
+//   audio.currentTime = time;
+
+//   console.log({
+//     assignedTime: time,
+//     currentAfterAssignment: audio.currentTime
+//   });
+
+//   updatePlayhead();
+//   autoScrollToPlayheadSmooth();
+// }
+
+spectrogramView.addEventListener("pointerdown", async (e) => {
+  // console.log("Spectrogram pointer down at: " + e.clientX.toString() + ", " + e.clientY.toString());
+  // isScrubbing = true;
+  // console.log(audio.currentTime.toString());
+  // console.log("=======")
+  // console.log(audio.currentTime.toString());
   if (audio.paused) audio.play();
   else audio.pause();
 });
 
-spectrogramView.addEventListener("mouseleave", () => {
-  clickLine.style.display = "none";
-});
+// window.addEventListener("pointermove", async (e) => {
+//   const rect = spectrogramView.getBoundingClientRect();
+//   const insideX = e.clientX >= rect.left && e.clientX <= rect.right;
+
+//   if (insideX) {
+//     clickLine.style.display = "block";
+//     clickLine.style.left = `${e.clientX - rect.left}px`;
+//   } else {
+//     clickLine.style.display = "none";
+//   }
+
+//   if (isScrubbing) {
+//     await seekFromPointerEvent(e);
+//   }
+// });
+
+// window.addEventListener("pointerup", () => {
+//   isScrubbing = false;
+// });
+
+
+// spectrogramView.addEventListener("mouseleave", () => {
+//   clickLine.style.display = "none";
+// });
 
 audio.addEventListener("play", startAnimation);
 audio.addEventListener("pause", stopAnimation);
@@ -2187,6 +2249,11 @@ viewer.addEventListener("wheel", (e) => {
 
 async function showAudio(index) {
 
+  audioView.style.display = "block";
+  imageView.style.display = "none";
+  audio.pause();
+  audio.currentTime = 0;
+
   console.log("Setting audio to index: " + index.toString());
   for (let child of spectrogramView.children) {
     child.style.opacity = '0';
@@ -2194,23 +2261,27 @@ async function showAudio(index) {
   currentSpectrogram = Array.from(spectrogramView.children).reverse()[audio_index];
   currentSpectrogram.style.opacity = '1';
   currentSpectrogram.style.display = "block";
+  await updateSpectrogramWidth();
 
   console.log("Current spectrogram set:");
   console.log(currentSpectrogram);
-  // reset zoom and pan
+  console.log(currentSpectrogram.width.toString() + "px wide");
+
   // wait a frame to ensure the image is fully loaded
 
-  // whenImageReady(currentSpectrogram, initView);
+
   console.log("Showing audio for question index: " + index.toString());
   console.log(quizData[index][0]["file"]);
   audio.src = quizData[index][0]["file"];
+  audio.currentTime = 0;
 
-  audioView.style.display = "block";
-  imageView.style.display = "none";
 
-  await audio.play();
-  syncActiveSpectrogramLayout();
+  await waitForLoadedMetadata(audio)
+
   viewer.scrollLeft = 0;
-  updatePlayhead();
+
+  audio.play();
+  syncActiveSpectrogramLayout();
+
   console.log("Audio playback started.");
 }
