@@ -87,6 +87,7 @@ let ObsData_audio = [];
 
 let species_pool = [];
 
+let keep_options_style = false;
 
 
 let quizOptions = [];
@@ -786,6 +787,14 @@ async function makeQuiz() {
   // hide quiz
   summaryView.style.display = "none";
   scoreLabel.style.display = "none";
+  quizContainer.style.display = "none";
+  imageView.style.display = "none";
+  spectrogramView.style.display = "none";
+  controlsContainer.style.display = "none";
+  obs_metadata_container.style.display = "none";
+  keep_options_style = false;
+
+
   imageView.innerHTML = "";
   spectrogramView.innerHTML = "";
 
@@ -952,6 +961,7 @@ async function makeQuiz() {
 
   }
 
+  answered = false;
 
   await buildQuiz();
 
@@ -985,6 +995,14 @@ export async function buildQuiz() {
       new_spectrogram.src = obs[0]["sono"]["full"];
       spectrogramView.prepend(new_spectrogram);
     }
+  });
+
+  // set option buttons
+  optionButtons.forEach((button, j) => {
+    button.innerHTML = "";
+    button.style.backgroundColor = "black";
+    button.style.border = "0.2vh solid white";
+
   });
 
   await updateLanguage();
@@ -1042,8 +1060,6 @@ export async function nextQuestion() {
   }
 
 
-  answered = false;
-
 
   // set options
 
@@ -1085,8 +1101,11 @@ export async function nextQuestion() {
     new_common_name_span.innerHTML = options[j]["preferred_common_name"];
     button.appendChild(new_scientific_name_span);
     button.appendChild(new_common_name_span);
-    button.style.backgroundColor = "black";
-    button.style.border = "0.2vh solid white";
+    if (!keep_options_style) {
+      button.style.backgroundColor = "black";
+      button.style.border = "0.2vh solid white";
+    }
+
   });
 
 
@@ -1115,6 +1134,13 @@ export async function nextQuestion() {
   else {
     nextButton.innerHTML = "Next";
   }
+
+
+  if (!keep_options_style) {
+    answered = false;
+  }
+
+  keep_options_style = false;
 
 
 
@@ -1275,6 +1301,10 @@ async function summary() {
       summary_text_container.appendChild(summary_text_container_box_wrong);
 
       if (!quizHistory[i]) {
+        console.log(quizHistory);
+        console.log(quizAnswers);
+        console.log("Question " + (i + 1).toString() + " was answered incorrectly, adding to summary.");
+        console.log("Quiz answer index: " + quizAnswers[i].toString());
 
         let summary_text_container_box_wrong = makeSummaryBox(i, "wrong", quizAnswers);
 
@@ -1551,7 +1581,7 @@ async function get_observations_XC() {
       }
     }
 
-    
+
 
 
 
@@ -1680,6 +1710,7 @@ async function select_language(lang) {
 async function updateLanguage() {
   // implement later
 
+  keep_options_style = true;
   // update quizData with preferred common names in selected language
   let ids = [];
   for (let i = 0; i < quizData.length; i++) {
